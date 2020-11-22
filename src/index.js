@@ -1,2 +1,3 @@
 export { default as default } from './Component.svelte';
-export { default as SideBar } from './SideBar.svelte';
+export { default as SideBar } from './sidebar/SideBar.svelte';
+export { default as MenuItem } from './sidebar/MenuItem.svelte';
