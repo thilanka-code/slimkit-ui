@@ -1,4 +1,5 @@
 <script>
+
     import MenuItem from "./MenuItem.svelte";
     export let cssClass;
     export let menu;
@@ -8,7 +9,7 @@
 
 <style>
     aside  {
-		max-width: 200px;
+		max-width: 300px;
 	}
 </style>
 
@@ -20,8 +21,6 @@
         {/each}
     </ul>
 </aside>
-
-<button class="button is-large">Hello</button>
 
 <!-- <aside class="menu {cssClass}">
     <ul class="menu-list">
@@ -51,3 +50,40 @@
         {/each}
     </ul>
 </aside> -->
+
+<!-- <aside class="menu">
+    <p class="menu-label">
+      General
+    </p>
+    <ul class="menu-list">
+      <li><a>Dashboard</a></li>
+      <li><a>Customers</a></li>
+    </ul>
+    <p class="menu-label">
+      Administration
+    </p>
+    <ul class="menu-list">
+      <li><a>Team Settings</a></li>
+      <li>
+        <a on:click={clickHandler} class="is-active">Manage Your Team</a>
+        {#if isVisibleX}
+        <ul transition:slide="{{ duration: 175 }}">
+          <li><a>Members</a></li>
+          <li><a>Plugins</a></li>
+          <li><a>Add a member</a></li>
+        </ul>
+        {/if}
+      </li>
+      <li><a>Invitations</a></li>
+      <li><a>Cloud Storage Environment Settings</a></li>
+      <li><a>Authentication</a></li>
+    </ul>
+    <p class="menu-label">
+      Transactions
+    </p>
+    <ul class="menu-list">
+      <li><a>Payments</a></li>
+      <li><a>Transfers</a></li>
+      <li><a>Balance</a></li>
+    </ul>
+  </aside> -->

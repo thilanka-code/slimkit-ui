@@ -1,2 +1,20 @@
+How to build
+------------
+
+- npm run build
+- npm pack 
+
+
+Dev dependecies
+----------------
+
+npm install copyfiles -D
+
+Peer dependecies
+-----------------
+
 npm install bulma
 
+npm install -D fa-svelte
+
+npm install @fortawesome/free-solid-svg-icons

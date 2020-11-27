@@ -1,12 +1,13 @@
 {
-  "name": "svelte-component-library",
-  "version": "0.2.0",
+  "name": "sv-lib",
+  "version": "0.0.1",
   "svelte": "src/index.js",
   "module": "dist/index.mjs",
   "main": "dist/index.js",
   "scripts": {
     "build": "rollup -c",
     "prepublishOnly": "npm run build",
+    "prod": "npm run build && npm pack",
     "test": "jest test",
     "test:watch": "yarn test -- --watch",
     "storybook": "start-storybook -p 6006",
@@ -24,6 +25,7 @@
     "@testing-library/svelte": "^3.0.0",
     "babel-jest": "^25.2.6",
     "babel-loader": "^8.1.0",
+    "copyfiles": "^2.4.0",
     "del-cli": "^3.0.0",
     "jest": "^25.2.7",
     "rollup": "^1.20.0",
@@ -41,6 +43,11 @@
     "dist"
   ],
   "dependencies": {
-    "bulma": "^0.9.1"
+  },
+  "peerDependencies": {
+    "bulma": "^0.9.1",
+    "@fortawesome/free-solid-svg-icons": "^5.15.1",
+    "fa-svelte": "^3.1.0"
   }
+
 }

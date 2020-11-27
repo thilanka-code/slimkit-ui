@@ -13,32 +13,36 @@ let menu = {
         }
     },
     "Settings": {
-        "Option1": { link: "/a1"},
-        "Option2": { link: "/a1"},
-        "Option3": { link: "/a1"},
+        "Option1": { link: "/a1" },
+        "Option2": { link: "/a1" },
+        "Option3": { link: "/a1" },
     },
     "Contact": {
         "Map": { link: "/map" },
     }
 }
 
+let basicProps = {
+    cssClass: 'xxxy',
+    menu: menu,
+}
+
 export default {
     title: 'Sidebar',
     component: SideBar,
-    props: {
-        cssClass: 'xy',
-        menu: menu,
-    }
+    props: basicProps
 }
 
-export const me = () => ({
+export const defaultSideBar = () => ({
     title: 'Sidebar2',
     Component: SideBar,
-    props: {
-        cssClass: 'xxxy',
-        menu: menu,
-        activeIndex: 1
-    }
+    props: basicProps
+});
+
+export const basicSideBar = () => ({
+    title: 'Sidebar2',
+    Component: SideBar,
+    props: Object.assign({ activeIndex: 1 }, basicProps)
 });
 
 // export default comp;
