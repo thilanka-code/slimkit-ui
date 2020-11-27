@@ -133,7 +133,6 @@
     }
 
     div.type-container {
-        width: 30em;
         position: relative;
     }
 </style>
