@@ -1,8 +1,7 @@
 How to build
 ------------
 
-- npm run build
-- npm pack 
+- npm run prod
 
 
 Dev dependecies
