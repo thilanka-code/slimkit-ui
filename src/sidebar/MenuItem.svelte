@@ -1,37 +1,35 @@
 <script>
-
-    // import MenuItem from "./MenuItem";
-    // import { MenuItem } from "./MenuItem.svelte";
+    
     import { slide } from 'svelte/transition';
-    import { onMount } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import Icon from 'fa-svelte'
     import { faCaretRight } from '@fortawesome/free-solid-svg-icons'
+    import { activeLink } from "./sidebar-store.js";
     
-
     export let menu;
     export let item;
-    export let isVisible = false
+    export let isChildrenVisible = false;
+    // let isLeafClicked = false;
     export let activeClass;
-
+    $: activeClass = isChildrenVisible?'is-active':''; //If children are visible make parent active
+    
     let link = menu[item].link;
     let childNodes = Object.keys(menu[item]);
-    // let childNodes;
-
-    // if(!link && isVisible) {
-    //     // console.log('Link is: '+link);
-    //     console.log('booooom');
-    //     // console.log(Object.keys(menu[item]));
-    //     childNodes = Object.keys(menu[item])
-    // }
-
-
+    
+    const dispatch = createEventDispatcher();
     
     function clickHandler () {
         
-        isVisible = !isVisible;    
-        activeClass = isVisible?'is-active':''
+        if(link) {
+            console.log('dispatching..');
+            //Tims is due to trigger change even store value is the same
+            // activeLink.set({link: link, time: new Date()}); 
+            activeLink.set(link); 
+            // isLeafClicked = !isLeafClicked;
+        } else {
+            isChildrenVisible = !isChildrenVisible;    
+        }
     }
-
 
 </script>
 
@@ -40,16 +38,15 @@
 <!-- {isVisible} -->
 
     {#if link}
-        {#if isVisible}<a href="/#{link}">{item}</a>{/if}
+        <a href="{link}" on:click|preventDefault ={clickHandler} class:leaf-clicked={$activeLink == link}>{item}</a>
     {:else}
 
-        <!-- <p class="parent-menu"><a on:click={clickHandler} class={activeClass}>{item} <Icon icon={faArrowRight}></Icon></a></p> -->
         <p class="parent-menu"><a on:click={clickHandler} class={activeClass}>{item} <Icon icon={faCaretRight}></Icon></a></p>
 
-        {#if isVisible}
+        {#if isChildrenVisible}
             <ul transition:slide="{{ duration: 125 }}">
                 {#each childNodes as nestedItem}
-                    <li><svelte:self menu={menu[item]} item={nestedItem} {isVisible} {activeClass}/></li>
+                    <li><svelte:self menu={menu[item]} item={nestedItem} {activeClass} /></li>
                 {/each}
             </ul>
         {/if}
@@ -58,5 +55,10 @@
     <style>
         .parent-menu {
             text-transform: uppercase;
+        }
+
+        a.leaf-clicked {
+            background-color: #ddd;
+            /* color: ivory; */
         }
     </style>

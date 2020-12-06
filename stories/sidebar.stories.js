@@ -2,15 +2,19 @@ import { SideBar } from "../src/index";
 
 let menu = {
     "resource monitorx": {
-        "Dashboard": { link: "/dashboard" },
-        "Customers X": { link: "/cus" },
+        "Dashboard": { link: "#dashboard" },
+        "Customers X": { link: "#cus" },
     },
     "administrationx": {
-        "Team Settings": { link: "/sett" },
+        "Team Settings": { link: "#sett" },
         "Manage Your Team ": {
             "Memberz": { link: "/memz" },
             "Pluginz": { link: "/plugz" },
-        }
+        },
+        "Global Team ": {
+            "new": { link: "/new" },
+            "old": { link: "/old" },
+        },
     },
     "Settings": {
         "Option1": { link: "/a1" },

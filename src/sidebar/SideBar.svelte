@@ -2,19 +2,47 @@
   import { slide } from "svelte/transition";
   import MenuItem from "./MenuItem.svelte";
   import { onMount, onDestroy } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
+  import { activeLink } from "./sidebar-store.js";
 
   export let cssClass;
   export let menu;
   export let activeIndex;
+  export let currentPath;
 
   let sidebarContainer;
   let isCollapsed;
+  const dispatch = createEventDispatcher();
+  
+  $: {
+    dispatch('collapsed', isCollapsed)
+  }
+
+  $: dispatch('click', $activeLink);
+
+  // $: activeLink.set({link: currentPath, time: new Date()}); 
+  $: activeLink.set(currentPath); 
+
   let isSmallScreen;
+  let topLevelMenuComponents = {}; //Contains all components
+  let topMenuItems = [];
+
+  onMount(()=>{
+    sidebarContainer.addEventListener('blur', (evt)=>{
+    })
+    topMenuItems = Object.keys(menu);
+
+    let temp = Object.keys(topLevelMenuComponents);
+    while(temp.length > 0) {
+
+    }
+  })
+  
 
   export const toggleShow = () => {
     isCollapsed = !isCollapsed;
     if(isSmallScreen && !isCollapsed) {
-      sidebarContainer.focus();
+      sidebarContainer.focus({ preventScroll: true });
     }
   }
 
@@ -23,6 +51,7 @@
   let mediaQ = window.matchMedia(query);
   isSmallScreen = mediaQ.matches;
   isCollapsed = isSmallScreen;
+  dispatch('collapsed', isCollapsed);
   
   const onScreenChange = (evt) => {
     if(evt.media == query){
@@ -33,24 +62,20 @@
   
   const onFocusOut = () => {
     if (isSmallScreen && !isCollapsed) {
+      //Delay is introduced so that actual navigation happend before focus out
+      setTimeout(() => {
         isCollapsed = true;
+      }, 100);
     }
   }
   
-  
   mediaQ.addEventListener("change", onScreenChange);
   
-  onMount(()=>{
-    sidebarContainer.addEventListener('blur', (evt)=>{
-    })
-  })
 
   onDestroy(()=>mediaQ.removeEventListener("change", onScreenChange))
   // =================================================================
 
   // $: cssVarStyles = `--hide-width:${}`
-  // class:collapsed-mobile={isCollapsed && window.matchMedia('screen and (max-width: 500px)').matches}
-  // class:open-mobile={!isCollapsed && window.matchMedia('screen and (max-width: 500px)').matches}
 
 </script>
 
@@ -93,7 +118,8 @@
   }
 </style>
 
-<!-- {#if !isCollapsed} -->
+<!-- {isCollapsed} -->
+<!-- {JSON.stringify(topLevelMenuComponents)} -->
 <aside id="_sv_lib_sidebar_container"
   class="menu {cssClass}"
   class:collapsed={isCollapsed}
@@ -103,60 +129,15 @@
   tabindex="-1">
 
   <ul class="menu-list">
-    {#each Object.keys(menu) as item, index}
+    {#each topMenuItems as item, index}
       <li>
-        <MenuItem
+        <MenuItem bind:this={topLevelMenuComponents[index]}
           {menu}
           {item}
-          isVisible={index == activeIndex}
           activeClass={index == activeIndex ? 'is-active' : ''} />
-      </li>
-    {/each}
-  </ul>
-</aside>
+        </li>
+        {/each}
+      </ul>
+    </aside>
 
 <!-- <svelte:window on:click={windowClick} /> -->
-
-<!-- {isCollapsed}
-{isSmallScreen} -->
-
-<!-- {/if} -->
-<!-- <button on:click={toggleShow}>show + {isCollapsed}</button> -->
-<!-- <svelte:window on:click={windowClick} /> -->
-
-<!-- <aside class="menu">
-    <p class="menu-label">
-      General
-    </p>
-    <ul class="menu-list">
-      <li><a>Dashboard</a></li>
-      <li><a>Customers</a></li>
-    </ul>
-    <p class="menu-label">
-      Administration
-    </p>
-    <ul class="menu-list">
-      <li><a>Team Settings</a></li>
-      <li>
-        <a on:click={clickHandler} class="is-active">Manage Your Team</a>
-        {#if isVisibleX}
-        <ul transition:slide="{{ duration: 175 }}">
-          <li><a>Members</a></li>
-          <li><a>Plugins</a></li>
-          <li><a>Add a member</a></li>
-        </ul>
-        {/if}
-      </li>
-      <li><a>Invitations</a></li>
-      <li><a>Cloud Storage Environment Settings</a></li>
-      <li><a>Authentication</a></li>
-    </ul>
-    <p class="menu-label">
-      Transactions
-    </p>
-    <ul class="menu-list">
-      <li><a>Payments</a></li>
-      <li><a>Transfers</a></li>
-      <li><a>Balance</a></li>
-    </ul>
-  </aside> -->
