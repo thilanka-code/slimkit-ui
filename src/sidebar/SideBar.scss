@@ -1,0 +1,37 @@
+// aside {
+//     max-width: 300px;
+//     overflow: hidden; /*So the sliding bit doesn't stick out. */
+//     /* -webkit-transition: all 0.45s ease-in-out;
+//     -moz-transition: all 0.45s ease-in-out;
+//     -o-transition: all 0.45s ease-in-out; */
+//     /* transition:  max-width 1s ease-in-out; */
+//     transition: transform 0.25s ease-in;
+//     /* transition: all 0.45s ease-in-out; */
+//     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+//     $main: red;
+//     background-color: $main; 
+//     z-index: 900;
+//     height: 100vh;
+//     /* transform: translateX(0px); */
+//   }
+
+//   aside:focus {
+//     outline: none;
+//   }
+
+//   aside.collapsed {
+//     transform: translateX(-300px);
+//     transition: transform 0.25s ease-out 0s, height 0.25s ease-out 0.25s,
+//       max-width 0.25s ease-out 0.15s;
+//     /* transition: height 0.45s ease-in-out; */
+//     height: 0;
+//     max-width: 0;
+//   }
+
+//   aside.onTop {
+//     /* This will display over on the content on the right; */
+//     position: absolute;
+//   }
+
+//   @media screen and (max-width: 900px) {
+//   }

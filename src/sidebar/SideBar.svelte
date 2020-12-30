@@ -139,7 +139,7 @@
   // $: cssVarStyles = `--hide-width:${}`
 </script>
 
-<style>
+<style type="text/scss" lang="scss">
   aside {
     max-width: 300px;
     overflow: hidden; /*So the sliding bit doesn't stick out. */
@@ -150,7 +150,10 @@
     transition: transform 0.25s ease-in;
     /* transition: all 0.45s ease-in-out; */
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-    background-color: white;
+    $slimkit-sidebar-background: white !default;
+    // $slimkit-sidebar-text-color: yellow !default;
+    background-color: $slimkit-sidebar-background;
+    // color: $slimkit-sidebar-text-color;
     z-index: 900;
     height: 100vh;
     /* transform: translateX(0px); */
@@ -196,7 +199,7 @@
           bind:this={topLevelMenuComponents[index]}
           {menu}
           {item}
-          activeClass={index == activeIndex ? 'is-active' : ''} />
+          activeClass={index == activeIndex ? 'is-selected' : ''} />
       </li>
     {/each}
   </ul>
