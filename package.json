@@ -1,6 +1,6 @@
 {
-  "name": "@slimkit-ui/svelte-elements",
-  "version": "0.0.3",
+  "name": "slimkit-ui",
+  "version": "0.0.2",
   "svelte": "src/index.js",
   "module": "dist/index.mjs",
   "main": "dist/index.js",
