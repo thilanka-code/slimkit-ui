@@ -11,7 +11,7 @@
     export let activeClass;
     export let parent = this;
     let childComponents = {}; // Contains child components of this parent so that childs can be collapsed
-    $: activeClass = isChildrenVisible ? "is-active" : ""; //If children are visible make parent active
+    $: activeClass = isChildrenVisible ? "is-selected" : ""; //If children are visible make parent active
 
     let link = menu[item].link;
 
@@ -32,13 +32,28 @@
     export const showChildren = () => (isChildrenVisible = true);
 </script>
 
-<style>
+<style type="text/scss" lang="scss">
     .parent-menu {
         text-transform: uppercase;
     }
 
-    a.leaf-clicked {
-        background-color: #ddd;
+    .colored-link {
+        $slimkit-sidebar-text-color: black !default;
+        color: $slimkit-sidebar-text-color;
+        &:hover {
+            $slimkit-sidebar-hover-menu-bg: #ddd !default;
+            background-color: $slimkit-sidebar-hover-menu-bg;
+            $slimkit-sidebar-hover-menu-text: black !default;
+            color: $slimkit-sidebar-hover-menu-text;
+        }
+    }
+    /** is-selected must be defined after colored-link! */
+    .is-selected {
+        $blue: hsl(217, 71%, 53%) !default;
+        $slimkit-sidebar-active-menu-color: $blue !default;
+        background-color: $slimkit-sidebar-active-menu-color;
+        // color: findColorInvert($slimkit-sidebar-active-menu-color);
+        color: white;
     }
 </style>
 
@@ -46,10 +61,11 @@
     <a
         href={link}
         on:click|preventDefault={clickHandler}
-        class:leaf-clicked={$activeLink == link}>{item}</a>
+        class="colored-link"
+        class:is-selected={$activeLink == link}>{item}</a>
 {:else}
     <p class="parent-menu">
-        <a on:click={clickHandler} class:is-active={isChildrenVisible}>{item}
+        <a on:click={clickHandler} class="colored-link" class:is-selected={isChildrenVisible}>{item}
             <Icon icon={faCaretRight} /></a>
     </p>
 
