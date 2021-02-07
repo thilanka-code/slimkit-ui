@@ -3,6 +3,10 @@ How to build
 
 - npm run prod
 
+How to publish
+---------------
+
+npm publish --access public
 
 Dev dependecies
 ----------------
