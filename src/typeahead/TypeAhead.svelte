@@ -14,7 +14,16 @@ TODO: Add item navigation by arrow keys?
 	const dispatch = createEventDispatcher();
     
     export let items;
-    
+    export const clear = () => {
+        userInput = ''
+    }
+
+    let searchBox
+
+    export const focus = () => {
+        searchBox.focus()
+    }
+
     let isLoading = !Array.isArray(items);
     
     $: _items = [];
@@ -63,16 +72,16 @@ TODO: Add item navigation by arrow keys?
             });
             
         function onSelect(v) {
-            console.log(v);
-            
-            userInput = v.text;
-            instantHide = true;
-            isVisible = false; // It's better if this can be hidden without animation?
-            itemSelected = {text: v.text, value: v.value};
-        dispatch('selected', {
-            ...itemSelected
-        });
-    }
+            if(v) { //Prevent errors on hitting enter on empty box
+                userInput = v.text;
+                instantHide = true;
+                isVisible = false; // It's better if this can be hidden without animation?
+                itemSelected = {text: v.text, value: v.value};
+                dispatch('selected', {
+                    ...itemSelected
+                });
+            }
+        }
 
     function keyUp(event) {
         itemSelected = null;
@@ -93,7 +102,7 @@ TODO: Add item navigation by arrow keys?
                 }
             }
         } else if (event.key === "Enter") {
-            // if(hov)
+            //This can be triggered on empty string. Should handle it on onSelect
             onSelect(filtered[hoverIndex]);
         } else if (filtered.length != 0) {
             isVisible = true;
@@ -196,14 +205,13 @@ TODO: Add item navigation by arrow keys?
     }
 </style>
 
-{hoverIndex}
-{JSON.stringify(itemSelected)}
 <div
     class="control type-container"
     id="_sv_lib_typahd_container"
     class:is-loading={isLoading}>
     <input
         type="text"
+        bind:this={searchBox}
         bind:value={userInput}
         on:keyup={keyUp}
         class="input"

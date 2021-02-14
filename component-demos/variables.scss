@@ -1,0 +1,30 @@
+// --------------- BULMA VARIABLES ----------------------------------
+// Set your brand colors
+$main: #600659; // Primary color
+$text-color-dark: $main;
+$beige-light: #D0D1CD;
+
+// Update Bulma's global variables
+$family-sans-serif: "Nunito", sans-serif;
+
+$grey-darker: $text-color-dark; // Bold text color
+$grey-dark: $text-color-dark; // Normal text color
+$primary: $main;
+$link: purple;
+$link-visited: purple;
+
+// $widescreen-enabled: false;
+// $fullhd-enabled: false;
+
+// Update some of Bulma's component variables
+// $body-background-color: $beige-lighter;
+// $control-border-width: 2px;
+// $input-border-color: transparent;
+// $input-shadow: none;
+
+// --------------- SIDEBAR VARIABLES ----------------------------------
+$slimkit-sidebar-background: $primary;
+$slimkit-sidebar-text-color: magenta;
+$slimkit-sidebar-active-menu-color: purple;
+$slimkit-sidebar-hover-menu-bg: $slimkit-sidebar-text-color;
+$slimkit-sidebar-hover-menu-text: $slimkit-sidebar-background;
