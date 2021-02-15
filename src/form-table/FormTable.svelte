@@ -8,7 +8,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export let config;
 export let data = {headers: [], items: []}
-const PREFIX = '__'
+const PREFIX = '__' // Prefix added for dyanmic field bindings
 
 export let insertData; //Data that will be inserted to the table
 let selectedInsertData; //This will be inserted to table as current
@@ -16,7 +16,6 @@ let selectedInsertData; //This will be inserted to table as current
 let typeahead
 let dynamicVals = {}
 let searchButton // Need this to set focus
-// let searchBox // Need this to set focus
 
 
 const dispatch = createEventDispatcher(); //This will dispatch event 'duplicate' on adding duplicate items to table
@@ -33,7 +32,7 @@ const dispatch = createEventDispatcher(); //This will dispatch event 'duplicate'
   if(data.items){
     data.items.forEach(row => {
       //For each row object
-      bindDynamicValuesInRow2(row)
+      bindDynamicValuesInRow(row)
       console.log(dynamicVals); 
     })
   } else {
@@ -54,19 +53,21 @@ const dispatch = createEventDispatcher(); //This will dispatch event 'duplicate'
   }
 
 
-
 /**
- * Compute each row and add data bindings if there are dynamic fields defined
+ * Compute given row and add data bindings if there are dynamic fields defined.
+ * Dynamic fields are identified by {type: 'text'}
  * 
- * @param row 
+ * @param row New row with dynamic fields ready to be bound by the UI 
  */
-function bindDynamicValuesInRow2 (row) {
-  const colIds = Object.keys(row) // [id, sku, qty]
-    colIds.forEach( colId => {
+function bindDynamicValuesInRow (row) {
+    
+  data.headers.map(h => h.id).forEach( colId => {
+    
       if (row[colId].type) {// If there's a type then it should be modifyable so have to update dynamicVals
-        row[PREFIX+colId] = row[colId].value
+        row[PREFIX+colId] = row[colId].value ? row[colId].value : ''
       }
     })
+    return row
 };
 
 /**
@@ -74,7 +75,7 @@ function bindDynamicValuesInRow2 (row) {
  */
 const add = () => {
   if(selectedInsertData){
-    if(config.noDuplicates) {
+    if(config.noDuplicates) { //Check if we are adding a duplicate
       let uniqueId = config.noDuplicates.id
       for(let tableItem of data.items) {
         if(selectedInsertData.value[uniqueId] == tableItem[uniqueId]) {
@@ -85,8 +86,7 @@ const add = () => {
       }
     }
    
-    data.items = [...data.items, selectedInsertData.value]
-    bindDynamicValuesInRow2(selectedInsertData.value)
+    data.items = [...data.items, bindDynamicValuesInRow(selectedInsertData.value)]
     selectedInsertData = null;
     typeahead.clear()
     typeahead.focus()
@@ -101,21 +101,21 @@ const sort = (col) => {
 
 /**
  * Returns an array of table rows. Table rows are new objects and not existing data.items
+ * This is ideally called in your on submit hook
  */
 const getValue = () => {
   let tableRows = []
+  const colIds = data.headers.map(h => h.id) // [id, sku, qty]
   data.items.forEach(row => {
     let tableRow = { ...row }
-    const colIds = Object.keys(row) // [id, sku, qty]
     colIds.forEach( colId => {
-      if (row[colId].type) {// If there's a type then it should be modifyable so have to update dynamicVals
-      tableRow[colId] = row[PREFIX+colId]
-      delete tableRow[PREFIX+colId]
-      tableRows.push(tableRow)
-    }
-  })
+      if (tableRow[colId].type) {// If there's a type then it should be modifyable so have to update dynamicVals
+        tableRow[colId] = row[PREFIX+colId]
+        delete tableRow[PREFIX+colId]
+      }
+    })
+    tableRows.push(tableRow)
 })
-  // console.log(data.items);
   console.log(tableRows);
   return tableRows;
 }
@@ -124,7 +124,6 @@ const onTypeAheadSelect = (it) => {
   selectedInsertData = it.detail
   searchButton.focus()
 }
-
 </script>
 
 {#if config.enableSearch}
@@ -154,12 +153,17 @@ const onTypeAheadSelect = (it) => {
         <tr>
           {#each data.headers as header}
             <td>
-              {#if item[header.id].type}
+              {#if item[header.id].type && item[header.id].type == 'number'}
                 <input
                   type="number"
                   class="input is-small"
                   bind:value={item[PREFIX+header.id]} />
-                <!-- {JSON.stringify(item)} -->
+                  {:else if item[header.id].type && item[header.id].type == 'text'}
+                  <input
+                    type="text"
+                    class="input is-small"
+                    bind:value={item[PREFIX+header.id]} />
+              
               {:else}{item[header.id]}{/if}
             </td>
           {/each}
