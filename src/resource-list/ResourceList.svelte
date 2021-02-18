@@ -5,7 +5,10 @@
     import { faEdit } from "@fortawesome/free-solid-svg-icons";
 
     export let resourceList // Promise that resolves a list
+    export let headers = [] //Optinal header label
     export let maxItems = 5
+
+    const ELEMENT_NAME = 'ResourceList'
 
     let searchText
     let isLoading =true
@@ -29,13 +32,14 @@
             keys = Object.keys(items[0])
         }
         const invalidKeys = keys.filter(it => it.startsWith('__') && it != '__url')
-        if(invalidKeys.length > 0) throw "Object keys contains invalid key starting with __. Only Object.__url is expected!"
+        if(invalidKeys.length > 0) throw ELEMENT_NAME + "::Object keys contains invalid key starting with __. Only Object.__url is expected!"
+        //Below -1 to avoid meta columns like __url
+        if(headers.length > 0 && headers.length != keys.length - 1) throw ELEMENT_NAME + "::Headers mismatch with provided resource item's keys length"
     })
 
     $: {
         if(searchText) {
             let tempList = []
-            // filteredList = []
             for(let item of resources) {
                 for(let key of keys) {
                     if (item[key] && (item[key] + '').includes(searchText)) {
@@ -48,11 +52,6 @@
         } else filteredList = resources
     }
 
-    const search = (text)=>{
-        
-    }
-    // let x = await resourceList.get()
-
 </script>
 
 <style lang="scss">
@@ -64,11 +63,13 @@
     .resource-row {
         // max-height: 100px;
         :hover {
-            // $beige-light: magenta !default;
-            // background-color: $hover-color;
             background-color: $primary-light;
-            // color: $text;
         }
+    }
+
+    .headers {
+        background-color: $primary;
+        color: $primary-invert;
     }
 
     // .action-buttons {
@@ -87,6 +88,17 @@
         {#if isLoading}
             <div class="column">...Loading</div>
         {:else}
+
+            {#if headers.length > 0}
+                <div class="column is-full">
+                    <div class="columns headers">
+                        {#each headers as label}
+                            <div class="column">{label}</div>
+                        {/each}
+                        <div class="column">Details</div>
+                    </div>
+                </div>
+            {/if}
             {#each filteredList as resource}
                 <div class="column is-full resource-row">
                     <div class="columns">
@@ -112,4 +124,3 @@
         {/if}    
             
     </div>
-<!-- </div> -->

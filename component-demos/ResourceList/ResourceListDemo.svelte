@@ -17,6 +17,8 @@
             ]);
         }, 1000)
     });
+
+    let headers = ['ID', 'SKU', 'PRICE']
     
 </script>
 
@@ -26,4 +28,4 @@
     } */
 </style>
 
-<ResourceList resourceList={resources} />
+<ResourceList resourceList={resources} {headers} />
