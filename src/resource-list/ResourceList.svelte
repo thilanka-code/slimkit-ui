@@ -15,13 +15,21 @@
 
     resourceList.then(items=> {
 
-        console.log(items);
+        //Pre processing of items
+        const processedItems = items.map(it=> {
+            if(!it.__url){
+                it.__url = '#'
+            }
+            return it;
+        })
         isLoading=false
-        resources = items
-        filteredList = items
+        resources = processedItems
+        filteredList = processedItems
         if(items.length > 0) {
             keys = Object.keys(items[0])
         }
+        const invalidKeys = keys.filter(it => it.startsWith('__') && it != '__url')
+        if(invalidKeys.length > 0) throw "Object keys contains invalid key starting with __. Only Object.__url is expected!"
     })
 
     $: {
@@ -83,13 +91,14 @@
                 <div class="column is-full resource-row">
                     <div class="columns">
                         {#each keys as key}
-                            <div class="column">{resource[key]}</div>
+                            <!-- We will skip keys starting with __ as they are meta columns -->
+                            {#if !key.startsWith('__')}<div class="column">{resource[key]}</div>{/if} 
                         {/each}
                         <!-- Resource action buttons below -->
                         <div class="column action-buttons">
-                            <button class="button is-small">
+                            <a class="buttonx is-link is-small" href={resource.__url}>
                                 <Icon icon={faEdit}/>
-                            </button>
+                            </a>
                             <!-- <button class="button is-small">
                                 <Icon icon={faEdit} class="fab" />
                             </button>
