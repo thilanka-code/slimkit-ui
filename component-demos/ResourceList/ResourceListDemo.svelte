@@ -1,5 +1,6 @@
 <script>
     import ResourceList from "../../src/resource-list/ResourceList.svelte";
+    
     let resources = new Promise((resolves) => {
         setTimeout(()=>{
             resolves([
@@ -22,10 +23,18 @@
     
 </script>
 
-<style>
-    /* ResourceList {
-        min-height: 50px;
-    } */
-</style>
+<pre>{`
+    let items = [
+        { id: "1", sku: "X001", price: 550.0, __url: './store_items/01'},
+        { id: "2", sku: "X002", price: 200.0 }, //If there's no url then it should defaults to #
+    ]
+    let resources = new Promise((r)=>r(items))
+    let headers = ['ID', 'SKU', 'PRICE']
+
+    <ResourceList resourceList={resources} {headers} />
+
+
+`}
+</pre>
 
 <ResourceList resourceList={resources} {headers} />
