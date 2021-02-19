@@ -14,7 +14,8 @@ const production = !process.env.ROLLUP_WATCH;
 
 // Your Preprocess which compiles source code to sass
 const preprocess = autoPreprocess({ 
-	scss: { includePaths: ['src'] },
+	//Below increase css bundle size!
+	scss: { includePaths: ['src'], prependData:`@import 'component-demos/variables.scss';` },
 	postcss: {
 		plugins: [ require('autoprefixer') ],
 	},
