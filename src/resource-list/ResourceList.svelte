@@ -63,12 +63,14 @@
     .resource-row {
         // max-height: 100px;
         :hover {
-            background-color: $primary-light;
+            $primary-light: red !default;
+            background-color: $primary-light ;
         }
     }
 
     .headers {
         background-color: $primary;
+        $primary-invert: green !default;
         color: $primary-invert;
     }
 

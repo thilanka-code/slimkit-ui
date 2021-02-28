@@ -139,7 +139,7 @@
   // $: cssVarStyles = `--hide-width:${}`
 </script>
 
-<style type="text/scss" lang="scss">
+<style type="text/scss" lang="scss" global>
   aside {
     max-width: 300px;
     overflow: hidden; /*So the sliding bit doesn't stick out. */
