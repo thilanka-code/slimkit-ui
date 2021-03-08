@@ -1,7 +1,7 @@
 {
   "author": "Thilanka N. Liyanaarachchi <thilanka.nuwan89@gmail.com> (https://zirconlabz.com)",
   "name": "@slimkit-ui/svelte-elements",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "svelte": "src/index.js",
   "module": "dist/index.mjs",
   "main": "dist/index.js",
@@ -37,6 +37,7 @@
     "jest": "^25.2.7",
     "node-sass": "^5.0.0",
     "postcss": "^8.2.1",
+    "postcss-load-config": "^3.0.1",
     "rollup": "^1.20.0",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",

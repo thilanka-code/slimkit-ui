@@ -2,11 +2,15 @@
 <script>
 
     import Icon from "fa-svelte";
-    import { faEdit } from "@fortawesome/free-solid-svg-icons";
+    import { faEdit, faCaretLeft, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 
     export let resourceList // Promise that resolves a list
     export let headers = [] //Optinal header label
     export let maxItems = 5
+    let currentPage = 1
+    let pages = 1
+    $: pageNums = Array.apply(0,Array(pages)).map((_, x)=>x+1)
+    let emptyRows = [] // To counter changing height problem
 
     const ELEMENT_NAME = 'ResourceList'
 
@@ -37,19 +41,47 @@
         if(headers.length > 0 && headers.length != keys.length - 1) throw ELEMENT_NAME + "::Headers mismatch with provided resource item's keys length"
     })
 
+    const pageLeft = ()=> {
+        currentPage = currentPage <= 1 ? currentPage : currentPage - 1
+    }
+
+    const pageRight = ()=> {
+        currentPage = currentPage == pageNums.length ? currentPage : currentPage + 1
+    }
+
     $: {
         if(searchText) {
             let tempList = []
             for(let item of resources) {
                 for(let key of keys) {
-                    if (item[key] && (item[key] + '').includes(searchText)) {
+                    // console.log((item[key] + '').toLowerCase()).includes(searchText.toLowerCase()));
+                    if (item[key] && ((item[key] + '').toLowerCase()).includes(searchText.toLowerCase())) {
                         tempList.push(item)
                         break;
                     }
                 }
             }
-            filteredList = tempList
-        } else filteredList = resources
+
+            let startIndex = (currentPage*maxItems)-maxItems
+            let endIndex = startIndex + maxItems
+            let temp = Math.trunc(tempList.length/maxItems)
+            pages = tempList.length%maxItems > 0 ? ++temp : temp
+            filteredList = tempList.slice(startIndex, endIndex)
+
+        } else {
+            let startIndex = (currentPage*maxItems)-maxItems;
+            let endIndex = startIndex + maxItems;
+            if(resources) {
+                let temp = Math.trunc(resources.length/maxItems)
+                pages = resources.length%maxItems > 0 ? ++temp : temp
+                filteredList = resources.slice(startIndex, endIndex) //Consider paging
+            }
+        }
+        let tempEmptyRows = []
+        for (let i = filteredList.length; i < maxItems; i++) {
+            tempEmptyRows.push({})
+        }
+        emptyRows = tempEmptyRows
     }
 
 </script>
@@ -57,14 +89,11 @@
 <style lang="scss">
     .results {
         margin-top: 25px;
-        // min-height: 300px;
-        // height: 100vh;
     }
     .resource-row {
-        // max-height: 100px;
         :hover {
             $primary-light: red !default;
-            background-color: $primary-light ;
+            background-color: $primary-light;
         }
     }
 
@@ -72,6 +101,24 @@
         background-color: $primary;
         $primary-invert: green !default;
         color: $primary-invert;
+    }
+
+    .paging-area {
+        margin-top: 48px;
+        text-align: center;
+    }
+
+    .current-page {
+        $primary-light: red !default;
+        background-color: $primary-light;
+    }
+
+    .empty-row {
+        min-height: 48px;
+    }
+
+    a :global(.arrows) {
+        font-size: x-large;
     }
 
     // .action-buttons {
@@ -123,6 +170,30 @@
                     </div>
                 </div>
             {/each}
+
+            {#each emptyRows as emptRow}
+                <div class="column is-full empty-row">
+
+                </div>
+            {/each}
+
+            <!-- Paging area below -->
+            <div class="column paging-area is-full">
+                <div class="columns">
+                    <div class="column is-one-quarter"></div>
+                    
+                    <div class="column">
+                        <div class="columns is-centered">
+                            <div class="column is-1"><a on:click={pageLeft}><Icon class="arrows" icon={faCaretLeft}/></a></div>
+                            {#each pageNums as pgNum}
+                            <div class="column is-1"><a class="{currentPage == pgNum ? 'is-outlined': 'is-white'} button" on:click={()=>currentPage = pgNum}>{pgNum}</a></div>
+                            {/each}
+                            <div class="column is-1"><a on:click={pageRight}><Icon class="arrows" icon={faCaretRight}/></a></div>
+                        </div>
+                    </div>
+                    <div class="column is-one-quarter"></div>
+                </div>
+            </div>
         {/if}    
             
     </div>

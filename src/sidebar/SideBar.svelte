@@ -34,7 +34,7 @@
   async function expandCurrentPathMenu() {
     const topMenus = Object.keys(menu);
     const targetItemPath = [];
-
+    let pathFoundInSidebar
     for (let i = 0; i < topMenus.length; i++) {
       const subMenu = menu[topMenus[i]];
 
@@ -48,22 +48,24 @@
       ) {
         // Target menu item found
         targetItemPath.unshift(i);
+        pathFoundInSidebar = true
         break;
       }
     }
+    if (pathFoundInSidebar) { //Only expand menu when path is found in sidebar data.
+      topLevelMenuComponents[targetItemPath[0]].showChildren();
+      await tick(); // Wait for the next UI update
+      let tempChildComps = topLevelMenuComponents[
+        targetItemPath[0]
+      ].getChildren();
 
-    topLevelMenuComponents[targetItemPath[0]].showChildren();
-    await tick(); // Wait for the next UI update
-    let tempChildComps = topLevelMenuComponents[
-      targetItemPath[0]
-    ].getChildren();
-
-    // Expand child nodes - we are skiping already expanded [0]
-    for (let i = 1; i < targetItemPath.length; i++) {
-      if (Object.keys(tempChildComps).length > 0) {
-        tempChildComps[targetItemPath[i]].showChildren();
-        await tick();
-        tempChildComps = tempChildComps[targetItemPath[i]].getChildren();
+      // Expand child nodes - we are skiping already expanded [0]
+      for (let i = 1; i < targetItemPath.length; i++) {
+        if (Object.keys(tempChildComps).length > 0) {
+          tempChildComps[targetItemPath[i]].showChildren();
+          await tick();
+          tempChildComps = tempChildComps[targetItemPath[i]].getChildren();
+        }
       }
     }
   }
