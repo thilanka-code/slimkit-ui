@@ -1,6 +1,7 @@
 <script>
     import FormTableDemo from "./FormTable/FormTableDemo.svelte";
     import ResourceListDemo from "./ResourceList/ResourceListDemo.svelte";
+    import TypeaheadDemo from "./Typeahead/TypeaheadDemo.svelte";
     
 </script>
 
@@ -17,6 +18,10 @@
 <section class="section">
     <h1 class="title is-2">Resource List</h1>
     <ResourceListDemo />
+</section>
+<section class="section">
+    <h1 class="title is-2">Typeahead</h1>
+    <TypeaheadDemo />
 </section>
 
 

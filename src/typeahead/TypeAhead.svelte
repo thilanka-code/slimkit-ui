@@ -14,11 +14,17 @@ TODO: Add item navigation by arrow keys?
 	const dispatch = createEventDispatcher();
     
     export let items;
+    let itemSelected;
+    export let valueSelected = undefined; //Same as itemSelected but only id will be provided. This is used for bind:valueSelected
     export const clear = () => {
         userInput = ''
     }
+    export const selectItem = (item)=> { //Set the selected item
+        onSelect(item)
+    }
 
     let searchBox
+    export let isDirty = false
 
     export const focus = () => {
         searchBox.focus()
@@ -31,17 +37,18 @@ TODO: Add item navigation by arrow keys?
     let isVisible;
 
     onMount(() => {
-        
-        Promise.resolve(items).then((val) => {
-            _items = val;
-            isLoading = false;
-        });
-        
+        if (!Array.isArray(items)) {
+            Promise.resolve(items).then((val) => {
+                _items = val;
+                isLoading = false;
+            });
+        } else {
+            _items = items
+        }
     });
     
     $: hoverIndex = isVisible?hoverIndex:-1;
     let instantHide;
-    let itemSelected;
     let ulElement; //<ul>
         let userInput = "";
         $: filtered = _items
@@ -77,6 +84,7 @@ TODO: Add item navigation by arrow keys?
                 instantHide = true;
                 isVisible = false; // It's better if this can be hidden without animation?
                 itemSelected = {text: v.text, value: v.value};
+                valueSelected = v.value
                 dispatch('selected', {
                     ...itemSelected
                 });
@@ -84,7 +92,9 @@ TODO: Add item navigation by arrow keys?
         }
 
     function keyUp(event) {
+        isDirty = true;
         itemSelected = null;
+        valueSelected = null
         if (event.key === "Escape") {
             isVisible = false;
         } else if (event.key === "ArrowDown") {
