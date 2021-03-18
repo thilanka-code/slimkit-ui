@@ -4,6 +4,7 @@
   import { onMount, onDestroy, tick } from "svelte";
   import { createEventDispatcher } from "svelte";
   import { activeLink } from "./sidebar-store.js";
+  import { clickOutside } from "../utils/clickOutside.js";
 
   export let cssClass;
   export let menu;
@@ -124,12 +125,9 @@
     }
   };
 
-  const onFocusOut = () => {
-    if (isSmallScreen && !isCollapsed) {
-      //Delay is introduced so that actual navigation happend before focus out
-      setTimeout(() => {
+const onFocusOut = () => {
+  if (isSmallScreen && !isCollapsed) {
         isCollapsed = true;
-      }, 100);
     }
   };
 
@@ -192,7 +190,8 @@
   class:collapsed={isCollapsed}
   class:onTop={isSmallScreen}
   bind:this={sidebarContainer}
-  on:blur={onFocusOut}
+  on:click_outside={onFocusOut}
+  use:clickOutside
   tabindex="-1">
   <ul class="menu-list">
     {#each topMenuItems as item, index}

@@ -1,6 +1,6 @@
 <script>
     export let title = 'Error occurred'
-    export let show_popup;
+    export let show_popup = false;
     export let message_text = '';
     export let type = 'info'
 
