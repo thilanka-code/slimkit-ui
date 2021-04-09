@@ -10,7 +10,7 @@ export let config;
 export let data = {headers: [], items: []}
 const PREFIX = '__' // Prefix added for dyanmic field bindings
 
-export let insertData; //Data that will be inserted to the table
+export let insertData; //Data that will be inserted to the table | promise
 let selectedInsertData; //This will be inserted to table as current
 
 let typeahead
