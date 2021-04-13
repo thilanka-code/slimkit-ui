@@ -158,6 +158,7 @@ TODO: Add item navigation by arrow keys?
 
     function windowClick(e) {
         if (
+            e.detail !== 0 && //Mouse click not keyboard click
             e.target.id !== "_sv_lib_typahd_container" &&
             e.target.id !== "_sv_lib_typahd_input" &&
             e.target.id !== "_sv_lib_typahd_resultList_item"

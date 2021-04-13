@@ -3,8 +3,7 @@ import { createEventDispatcher, onMount } from "svelte";
 
 import TypeAhead from "../typeahead/TypeAhead.svelte";
 import Icon from "fa-svelte";
-import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faCaretDown, faPlus, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 export let config;
 export let data = {headers: [], items: []}
@@ -103,7 +102,7 @@ const sort = (col) => {
  * Returns an array of table rows. Table rows are new objects and not existing data.items
  * This is ideally called in your on submit hook
  */
-const getValue = () => {
+export const getValue = () => {
   let tableRows = []
   const colIds = data.headers.map(h => h.id) // [id, sku, qty]
   data.items.forEach(row => {
@@ -116,13 +115,17 @@ const getValue = () => {
     })
     tableRows.push(tableRow)
 })
-  console.log(tableRows);
   return tableRows;
 }
 
 const onTypeAheadSelect = (it) => {
   selectedInsertData = it.detail
   searchButton.focus()
+}
+
+const removeRow = (row) => {
+  data.items.splice(row, 1)
+  data.items = data.items
 }
 </script>
 
@@ -134,7 +137,7 @@ const onTypeAheadSelect = (it) => {
     on:selected={onTypeAheadSelect} />
   </div>
   <div class="column">
-  <button class="button is-primary" on:click={add} bind:this={searchButton}><Icon icon={faPlus} /></button>
+  <button class="button is-primary" on:click|preventDefault={add} bind:this={searchButton}><Icon icon={faPlus} /></button>
   </div>
 </div>
 {/if}
@@ -143,7 +146,7 @@ const onTypeAheadSelect = (it) => {
     <thead>
       <tr>
         {#each data.headers as header}
-          <th>{header.label}<button class="button is-white is-small" on:click={sort(header.id)}><Icon icon={faCaretDown} /></button></th>
+          <th>{header.label}<button class="button is-white is-small" on:click|preventDefault={sort(header.id)}><Icon icon={faCaretDown} /></button></th>
         {/each}
       </tr>
     </thead>
@@ -166,10 +169,15 @@ const onTypeAheadSelect = (it) => {
               
               {:else}{item[header.id]}{/if}
             </td>
-          {/each}
+            {/each}
+            <td>
+              <button class="button is-dark is-small" on:click|preventDefault={ () => removeRow(row)}>
+                <Icon icon={faTrashAlt}/>
+              </button>
+            </td>
         </tr>
       {/each}
     </tbody>
   </table>
-  <button class="button" on:click={getValue}>Get Value</button>
+  <!-- <button class="button" on:click={getValue}>Get Value</button> -->
 </div>

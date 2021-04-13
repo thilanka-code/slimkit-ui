@@ -20,26 +20,35 @@
     let keys
     let filteredList = []
 
-    resourceList.then(items=> {
-
-        //Pre processing of items
-        const processedItems = items.map(it=> {
-            if(!it.__url){
-                it.__url = '#'
+    $:{
+        resourceList.then(items=> {
+            currentPage = 1 //Reset page number every time the resourceList changes
+            //Pre processing of items
+            const processedItems = items.map(it=> {
+                if(!it.__url){
+                    it.__url = '#'
+                }
+                return it;
+            })
+            isLoading=false
+            resources = processedItems
+            filteredList = processedItems
+            
+            if(items.length > 0) {
+                keys = Object.keys(items[0])
             }
-            return it;
+            // Seperate function is needed to prevent infinite reactive loop
+            //https://github.com/sveltejs/svelte/issues/4420
+            validateIfObjectKeysMatchHeaders()
         })
-        isLoading=false
-        resources = processedItems
-        filteredList = processedItems
-        if(items.length > 0) {
-            keys = Object.keys(items[0])
-        }
+    }
+
+    const validateIfObjectKeysMatchHeaders = () => {
         const invalidKeys = keys.filter(it => it.startsWith('__') && it != '__url')
         if(invalidKeys.length > 0) throw ELEMENT_NAME + "::Object keys contains invalid key starting with __. Only Object.__url is expected!"
         //Below -1 to avoid meta columns like __url
         if(headers.length > 0 && headers.length != keys.length - 1) throw ELEMENT_NAME + "::Headers mismatch with provided resource item's keys length"
-    })
+    }
 
     const pageLeft = ()=> {
         currentPage = currentPage <= 1 ? currentPage : currentPage - 1
