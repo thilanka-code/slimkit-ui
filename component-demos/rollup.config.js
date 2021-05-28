@@ -1,9 +1,11 @@
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import {terser} from 'rollup-plugin-terser';
 import pkg from '../package.json';
 import { sveltePreprocess } from 'svelte-preprocess/dist/autoProcess';
+import babel from 'rollup-plugin-babel'
 
 const name = pkg.name
 	.replace(/^(@\S+\/)?(svelte-)?(\S+)/, '$3')
@@ -12,6 +14,40 @@ const name = pkg.name
 
 
 const production = !process.env.ROLLUP_WATCH;
+
+// enable for IE11 Support
+const legacySupport = true
+
+const babelConfig = {
+	extensions: ['.js', '.mjs', '.html', '.svelte'],
+	runtimeHelpers: true,
+	// exclude: ['../node_modules/@babel/**', '../node_modules/core-js/**', '../node_modules/core-*/**', '../node_modules/webpack/**', '../node_modules/babel-runtime/**', '../node_modules/babel-*/**'],
+	exclude: ['node_modules/@babel/**', 'node_modules/core-js/**', 'node_modules/core-*/**', 'node_modules/webpack/**', 'node_modules/babel-runtime/**', 'node_modules/babel-*/**'],
+	// exclude: ['node_modules/@babel/runtime/**'],
+	// exclude: ['../node_modules/**', './node_modules/**', 'node_modules/**'],
+	presets: [
+	  [
+		'@babel/preset-env',
+		{
+		  targets: {
+			ie: '11',
+			chrome: '58',
+		  },
+		  useBuiltIns: 'usage',
+		  corejs: 3,
+		},
+	  ],
+	],
+	plugins: [
+	  '@babel/plugin-syntax-dynamic-import',
+	  [
+		'@babel/plugin-transform-runtime',
+		{
+		  useESModules: true,
+		},
+	  ],
+	],
+  }
 
 function serve() {
 	let server;
@@ -38,9 +74,9 @@ export default {
 	input: './component-demos/index.js',
 	output: {
 		sourcemap: true,
-		format: 'es',
+		format: 'iife',
 		name: 'app',
-		dir: './component-demos/public/build/'
+		file: './component-demos/public/build/index.js'
 	},
 	plugins: [
 		svelte({
@@ -56,7 +92,13 @@ export default {
             // preprocess
         }),
 		// svelte(),
-		resolve(),
+		resolve({
+			browser: true,
+			dedupe: ['svelte']
+		}),
+
+		commonjs(),
+
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated
 		!production && serve(),
@@ -64,6 +106,9 @@ export default {
 		// Watch the `public` directory and refresh the
 		// browser on changes when not in production
 		!production && livereload('component-demos'),
+
+		// compile to ES 2in oder to support chromium 59+
+		legacySupport && babel(babelConfig),
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify

@@ -10,6 +10,7 @@
   export let menu;
   export let activeIndex;
   export let currentPath;
+  export let ie11=false;
 
   let sidebarContainer;
   let isCollapsed;
@@ -130,10 +131,20 @@ const onFocusOut = () => {
         isCollapsed = true;
     }
   };
+  
+  if(ie11){
+    mediaQ.addListener("change", onScreenChange);
+  } else {
+    mediaQ.addEventListener("change", onScreenChange); //This will not work in IE 11 and webview
+  }
 
-  mediaQ.addEventListener("change", onScreenChange);
-
-  onDestroy(() => mediaQ.removeEventListener("change", onScreenChange));
+  onDestroy(() => {
+    if(ie11){
+      mediaQ.removeListener("change", onScreenChange)
+    } else {
+      mediaQ.removeEventListener("change", onScreenChange)
+    }
+  });
   // =================================================================
 
   // $: cssVarStyles = `--hide-width:${}`
@@ -191,7 +202,7 @@ const onFocusOut = () => {
   class:onTop={isSmallScreen}
   bind:this={sidebarContainer}
   on:click_outside={onFocusOut}
-  use:clickOutside
+  use:clickOutside={ie11}
   tabindex="-1">
   <ul class="menu-list">
     {#each topMenuItems as item, index}

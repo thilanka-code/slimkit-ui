@@ -15,8 +15,10 @@
 		isSideBarCollapsed = evt.detail;
 	}
 
+  let ie11 = false
+
 </script>
 <SideBar {menu} cssClass="column" bind:this={mySideBar} on:collapsed={sidebarCollapsed} 
-{activeIndex} on:click={activeLink} {currentPath}/>
+{activeIndex} on:click={activeLink} {currentPath} {ie11}/>
 
 <button class="button" on:click={mySideBar.toggleShow}>Toggle Sidebar</button>
