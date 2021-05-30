@@ -64,13 +64,13 @@
             for(let item of resources) {
                 for(let key of keys) {
                     // console.log((item[key] + '').toLowerCase()).includes(searchText.toLowerCase()));
-                    if (item[key] && ((item[key] + '').toLowerCase()).includes(searchText.toLowerCase())) {
+                    if (item[key] && ((item[key] + '').toLowerCase()).indexOf(searchText.toLowerCase()) >= 0) {
                         tempList.push(item)
                         break;
                     }
                 }
             }
-
+            currentPage = 1 //Reset page number every time the user search
             let startIndex = (currentPage*maxItems)-maxItems
             let endIndex = startIndex + maxItems
             let temp = Math.trunc(tempList.length/maxItems)
