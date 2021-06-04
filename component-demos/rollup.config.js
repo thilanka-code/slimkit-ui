@@ -16,7 +16,7 @@ const name = pkg.name
 const production = !process.env.ROLLUP_WATCH;
 
 // enable for IE11 Support
-const legacySupport = true
+const legacySupport = false
 
 const babelConfig = {
 	extensions: ['.js', '.mjs', '.html', '.svelte'],

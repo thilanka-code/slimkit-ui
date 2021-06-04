@@ -153,6 +153,7 @@ const onFocusOut = () => {
 <style type="text/scss" lang="scss" global>
   aside {
     max-width: 300px;
+    min-width: 250px; /* Otherwise large content to the right may shrink sidebar width
     overflow: hidden; /*So the sliding bit doesn't stick out. */
     /* -webkit-transition: all 0.45s ease-in-out;
     -moz-transition: all 0.45s ease-in-out;
