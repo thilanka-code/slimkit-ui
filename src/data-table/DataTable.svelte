@@ -1,7 +1,7 @@
 <script>
     import Icon from "fa-svelte";
     import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
-    import { afterUpdate } from "svelte";
+    import { afterUpdate, onMount } from "svelte";
 
     export let resourceList; // Promise that resolves a list
     export let headers = []; //Optinal header label
@@ -9,22 +9,30 @@
     export let cssClass = "";
     let currentPage = 1;
     let pages = 1;
-    
-    let emptyRows = []; // To counter changing height problem
+    $: pageNums = Array.apply(0,Array(pages)).map((_, x)=>x+1)
 
     const ELEMENT_NAME = "ResourceList";
-
+    let outerMostContainerDiv //This will be bound by svelte - Outer parent
+    let scrollableTableContainer //This will be bound by svelte - scroll bar will be applied to this
+    let table //This will be bound by svelte - actual table
+    
     let searchText;
+    let scrollWait //If true no scroll events will be intercepted until set to true : this is to throttle
+    let scrollTopLast //Last scrollTop value to determine current scroll direction - will be initialized in afterUpdate by its initial value
     let isLoading = true;
-    let resources;
-    let keys;
-    let filteredList = [];
+    let resources; //what's this? same as processedItems used to calculate paging
+    let keys; //keys of object array provided
+    let filteredList = []; //actual data rendered on table
+    let filterMap = {} // {key: uniqueValuesArray[]}
 
     $: {
         resourceList.then((items) => {
             currentPage = 1; //Reset page number every time the resourceList changes
             //Pre processing of items
+            // const processedItems = items.map((it, i) => {
             const processedItems = items.map((it) => {
+                // it['id'] = i
+                // console.log(i);
                 if (!it.__url) {
                     it.__url = "#";
                 }
@@ -34,14 +42,57 @@
             resources = processedItems;
             filteredList = processedItems;
 
-            if (items.length > 0) {
-                keys = Object.keys(items[0]);
+            if (processedItems.length > 0) {
+                keys = Object.keys(processedItems[0]);
             }
             // Seperate function is needed to prevent infinite reactive loop
             //https://github.com/sveltejs/svelte/issues/4420
-            validateIfObjectKeysMatchHeaders();
+            // validateIfObjectKeysMatchHeaders(); //Why is this commented?
             resizeTable();
+            captureUniqueItemsToFilter(items) //runs on all items for once promise reolve
         });
+    }
+
+    const pageRight = ()=> {
+        currentPage = currentPage == pageNums.length ? currentPage : currentPage + 1
+    }
+
+    const pageLeft = ()=> {
+        currentPage = currentPage <= 1 ? currentPage : currentPage - 1
+    }
+
+
+    const captureUniqueItemsToFilter = (items)=> {
+        
+        const maxUniqueValues = 10
+        const maxSearchableRows = 1000
+        let filterableKeys = keys
+        let iterations = 0
+        let i = 0
+        for(let item of items) {
+            if(i>maxSearchableRows) break
+            for(const key of filterableKeys) {
+                iterations++
+                if(filterMap[key]) {
+                    if(filterMap[key].indexOf(item[key]) >= 0){ //duplicated value for the key
+                        continue
+                    }
+                    if(filterMap[key].length < maxUniqueValues){
+                        filterMap[key] = [...filterMap[key], item[key]]
+                    } else {
+                        filterableKeys = filterableKeys.filter(x=> x!= key) //remove key from further collecting unique values
+                    }
+                } else {
+                    filterMap[key] = [item[key]]
+                }
+            }
+            if(filterableKeys.length == 0){
+                break
+            }
+            i++
+        }
+        // console.log(filterMap);
+        return {}
     }
 
     const validateIfObjectKeysMatchHeaders = () => {
@@ -63,34 +114,18 @@
 
     $: {
         if (searchText) {
+            let i = 0
             let tempList = [];
-            console.log(resources.length);
-            console.log(keys);
             for (let item of resources) {
                 for (let key of keys) {
-                    // console.log((item[key] + '').toLowerCase()).includes(searchText.toLowerCase()));
-                    if (
-                        key == "hash" &&
-                        item[key] &&
-                        (item[key] + "")
-                            .toLowerCase()
-                            .indexOf("MSG0f9ff2f8".toLowerCase()) >= 0
-                    ) {
-                        console.log(item[key]);
-                    }
-                    if (
-                        item[key] &&
-                        (item[key] + "")
-                            .toLowerCase()
-                            .indexOf(searchText.toLowerCase()) >= 0
-                    ) {
+                    if (item[key] && (item[key] + "").toLowerCase().indexOf(searchText.toLowerCase()) >= 0) {
                         tempList.push(item);
-                        console.log("gotcha..");
                         break;
                     }
+                    i++
                 }
             }
-            console.log("Done searching..");
+            // console.log("Done searching.. Iterations: "+i);
             currentPage = 1; //Reset page number every time the user search
             let startIndex = currentPage * maxItems - maxItems;
             let endIndex = startIndex + maxItems;
@@ -100,26 +135,96 @@
         } else {
             let startIndex = currentPage * maxItems - maxItems;
             let endIndex = startIndex + maxItems;
+            // console.log(`curPage: ${currentPage} max: ${maxItems} start: ${startIndex} end: ${endIndex} pages: ${pages}`);
             if (resources) {
                 let temp = Math.trunc(resources.length / maxItems);
                 pages = resources.length % maxItems > 0 ? ++temp : temp;
                 filteredList = resources.slice(startIndex, endIndex); //Consider paging
             }
         }
-        let tempEmptyRows = [];
-        for (let i = filteredList.length; i < maxItems; i++) {
-            tempEmptyRows.push({});
-        }
-        emptyRows = tempEmptyRows;
     }
 
     function resizeTable() {
-        let tables = [document.getElementById("mx")];
+        let tables = [table];
         for (var i = 0; i < tables.length; i++) {
             resizableGrid(tables[i]);
         }
     }
+    
+    let lastCall
+    let scrollDirection
+    let autoScrolled
+    onMount(()=>{
 
+        scrollTopLast = scrollableTableContainer.scrollTop;
+        scrollableTableContainer.addEventListener("scroll", ()=>{
+
+            // console.log(`sc rec: `);
+
+            if(scrollableTableContainer.scrollTop == scrollTopLast) return
+            
+            if(scrollableTableContainer.scrollTop >= scrollTopLast){
+                scrollDirection = 'down'
+            }else{
+                // console.log(`going up ${scrollableTableContainer.scrollTop} :: last: ${scrollTopLast}`);
+                scrollDirection = 'up'
+            }
+            
+            if(!scrollWait){
+                scrollWait = true
+                if (lastCall) clearTimeout(lastCall);
+                lastCall = setTimeout(() => {
+                        if(!autoScrolled){
+                            const tabelRowHeight = table.children[1].children[0].offsetHeight //table -> body -> tr
+                            // const tabelHeaderRowHeight = table.children[0].children[0].offsetHeight //table -> head -> tr
+
+                            // let viewportStartRow = Math.round(scrollableTableContainer.scrollTop/tabelRowHeight)
+                            
+                            // let viewportEndRow = Math.round((scrollableTableContainer.scrollTop + scrollableTableContainer.offsetHeight - tabelHeaderRowHeight - 1)/tabelRowHeight)
+                            // console.log(`scroll direction: ${scrollDirection} last pos: ${scrollTopLast} scrollTop: ${scrollableTableContainer.scrollTop} offsetHeight: ${scrollableTableContainer.offsetHeight} scrollHeightcur: ${scrollableTableContainer.scrollHeight} Page: ${currentPage}`);
+                            let scrollEdgeOffset = Math.round(tabelRowHeight/7) // space between scroll bar and edge when jumping to trigger inifinite scroll
+                            if(scrollDirection == 'up' && scrollableTableContainer.scrollTop < 1){
+                                // console.log(`loading prev page now page: '${currentPage}' data`);
+                                if(currentPage != 1){
+                                    pageLeft();
+                                    autoScrolled = true 
+                                    setTimeout(() => {
+                                        //Jump scrollbar
+                                        let maxScrollableTop = scrollableTableContainer.scrollHeight - scrollableTableContainer.clientTop
+                                        scrollableTableContainer.scrollTop = maxScrollableTop - scrollEdgeOffset
+                                    }, 80);
+
+                                }
+                            } else if(scrollDirection == 'down' && Math.round(scrollableTableContainer.scrollTop + scrollableTableContainer.offsetHeight) >= scrollableTableContainer.scrollHeight){ //scroll reached end
+                                //Rounding is required as in chrome scrollTop is a float
+                                if(currentPage != pageNums[pageNums.length-1]){
+                                    pageRight();
+                                    autoScrolled = true 
+                                    // scrollableTableContainer.style.pointerEvents = 'none' // To tame the crazy jumping effect when user press and hold scroll to the edge * cause slowness
+                                    setTimeout(() => {
+                                        //Jump scrollbar
+                                        scrollableTableContainer.scrollTop = scrollEdgeOffset
+                                        // scrollableTableContainer.style.pointerEvents = 'auto' // To tame the crazy jumping effect when user press and hold scroll to the edge * cause slowness
+                                    }, 80);
+                                }
+                            }
+                                scrollWait = false
+                                scrollTopLast = scrollableTableContainer.scrollTop
+                            }else {
+                                scrollWait = false
+                                scrollTopLast = scrollableTableContainer.scrollTop
+                                autoScrolled = false
+                            }
+                        
+                    }, 100);
+                }
+        })
+
+    })
+
+    /**
+     * This code will run on every update to the DOM!
+    */
     afterUpdate(() => {
         resizeTable();
     });
@@ -146,7 +251,6 @@
                     e.target.parentElement.getElementsByClassName(
                         "tbl-head-container"
                     )[0];
-                // curCol.parentElement.parentElement //th
                 nxtCol =
                     curCol.parentElement.nextElementSibling.getElementsByClassName(
                         "tbl-head-container"
@@ -157,11 +261,10 @@
 
                 curColWidth = curCol.offsetWidth - padding;
                 if (nxtCol) nxtColWidth = nxtCol.offsetWidth - padding;
-                console.log({ curCol, nxtCol, curColWidth, nxtColWidth });
+                // console.log({ curCol, nxtCol, curColWidth, nxtColWidth });
             });
 
             div.addEventListener("mouseover", function (e) {
-                // console.log(e.target);
                 e.target.style.borderRight = "2px solid #0000ff";
             });
 
@@ -172,8 +275,6 @@
             document.addEventListener("mousemove", function (e) {
                 if (curCol) {
                     var diffX = e.pageX - pageX;
-                    // console.log({curCol, nxtCol, pageX, diffX});
-
                     if (nxtCol) nxtCol.style.width = nxtColWidth - diffX + "px";
 
                     curCol.style.width = curColWidth + diffX + "px";
@@ -233,8 +334,7 @@
             }
             return;
         } else {
-            let templateMenu = document
-                .getElementsByClassName("data-list-container")[0]
+            let templateMenu = outerMostContainerDiv
                 .getElementsByClassName("filter-menu")[0];
             let menu = document.createElement("div");
             menu.style.display = "block";
@@ -252,7 +352,7 @@
     };
 </script>
 
-<div class="columns is-multiline data-list-container">
+<div class="columns is-multiline data-list-container" bind:this={outerMostContainerDiv}>
     <input
         type="text"
         class="input is-small column is-full"
@@ -261,8 +361,8 @@
     />
 
     <!-- Table based impl -->
-    <div class="table-container">
-        <table id="mx" class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth {cssClass}">
+    <div class="svelte-elements-datatable-table-container" bind:this={scrollableTableContainer}>
+        <table id="mx" class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth {cssClass}" bind:this={table}>
             <thead>
                 <tr>
                     {#each headers as label}
@@ -302,7 +402,10 @@
 
     <div class="filter-menu">
         This is some div
-        <input type="checkbox" /><label for="chk">Item1</label>
+        <input type="checkbox" /><label for="chk">Item1</label><br>
+        <input type="checkbox" /><label for="chk">Item1</label><br>
+        <input type="checkbox" /><label for="chk">Item1</label><br>
+        <input type="checkbox" /><label for="chk">Item1</label><br>
     </div>
 </div>
 
@@ -328,7 +431,7 @@
         margin-top: 25px;
     }
 
-    .table-container {
+    .svelte-elements-datatable-table-container {
         overflow: auto;
         // width: 1200px;
         height: 500px;

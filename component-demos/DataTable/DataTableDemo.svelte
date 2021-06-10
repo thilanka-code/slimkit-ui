@@ -10,6 +10,7 @@
     
 
     let headers = [
+        // "id",
         "timestamp",
         "logLevel",
         "threadID",
@@ -59,5 +60,5 @@
 <button on:click={x}>gett</button> -->
 
 <div class="column" id="logTable">
-    <DataTable resourceList={resources} {headers} maxItems="50" cssClass="log-viewer-tbl" />
+    <DataTable resourceList={resources} {headers} maxItems={500} cssClass="log-viewer-tbl" />
 </div>
