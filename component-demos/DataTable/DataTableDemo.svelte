@@ -36,11 +36,11 @@
     :global(.log-viewer-tbl){
         font-style: italic;
     }
-    /* #logTable {
-        max-width: 1000px;
-        max-height: 500px;
-        overflow: scroll;
-    } */
+    #logTable {
+        max-width: 1600px;
+        // max-height: 500px;
+        // overflow: scroll;
+    }
 </style>
 
 <pre>{`

@@ -14,9 +14,13 @@
     const ELEMENT_NAME = "ResourceList";
     let outerMostContainerDiv //This will be bound by svelte - Outer parent
     let scrollableTableContainer //This will be bound by svelte - scroll bar will be applied to this
-    let table //This will be bound by svelte - actual table
+    let dataTableElement //This will be bound by svelte - actual table
+    let headerTableElement //This will be bound by svelte - actual table header
+    let tblHeadContainerElement //This will be bound by svelte - actual table header
+    let headerTableContainerElement //This will be bound by svelte - actual table header
     
     let searchText;
+    let searchTextElement
     let scrollWait //If true no scroll events will be intercepted until set to true : this is to throttle
     let scrollTopLast //Last scrollTop value to determine current scroll direction - will be initialized in afterUpdate by its initial value
     let isLoading = true;
@@ -24,6 +28,7 @@
     let keys; //keys of object array provided
     let filteredList = []; //actual data rendered on table
     let filterMap = {} // {key: uniqueValuesArray[]}
+    let columnFilter = {} // {key: [] } key = column id
 
     $: {
         resourceList.then((items) => {
@@ -48,7 +53,7 @@
             // Seperate function is needed to prevent infinite reactive loop
             //https://github.com/sveltejs/svelte/issues/4420
             // validateIfObjectKeysMatchHeaders(); //Why is this commented?
-            resizeTable();
+            // resizeTable();
             captureUniqueItemsToFilter(items) //runs on all items for once promise reolve
         });
     }
@@ -145,7 +150,7 @@
     }
 
     function resizeTable() {
-        let tables = [table];
+        let tables = [headerTableElement];
         for (var i = 0; i < tables.length; i++) {
             resizableGrid(tables[i]);
         }
@@ -155,9 +160,24 @@
     let scrollDirection
     let autoScrolled
     onMount(()=>{
+        window.onscroll = function() {
+            // console.log('scrolling');
+            // updateTableHeaderPositions()
+        };
 
         scrollTopLast = scrollableTableContainer.scrollTop;
         scrollableTableContainer.addEventListener("scroll", ()=>{
+
+            // var translate = "translate(0,"+scrollableTableContainer.scrollTop+"px)";
+            // scrollableTableContainer.querySelector("thead").style.transform = translate;
+
+            // var translate = "translate(0,"+scrollableTableContainer.scrollTop+"px)";
+
+
+            // const allTh = scrollableTableContainer.querySelectorAll("th");
+            // for( let i=0; i < allTh.length; i++ ) {
+            //     allTh[i].style.transform = translate;
+            // }
 
             // console.log(`sc rec: `);
 
@@ -175,7 +195,8 @@
                 if (lastCall) clearTimeout(lastCall);
                 lastCall = setTimeout(() => {
                         if(!autoScrolled){
-                            const tabelRowHeight = table.children[1].children[0].offsetHeight //table -> body -> tr
+                            // console.log(translate);
+                            const tabelRowHeight = dataTableElement.children[0].children[0].offsetHeight //table -> body -> tr
                             // const tabelHeaderRowHeight = table.children[0].children[0].offsetHeight //table -> head -> tr
 
                             // let viewportStartRow = Math.round(scrollableTableContainer.scrollTop/tabelRowHeight)
@@ -227,7 +248,72 @@
     */
     afterUpdate(() => {
         resizeTable();
-    });
+        // updateTableHeaderPositions()
+        // headerTableElement.style.width = scrollableTableContainer.offsetWidth + "px"
+        headerTableContainerElement.style.width = scrollableTableContainer.offsetWidth + "px"
+
+        // let headerCols = [headerTableElement.getElementsByTagName('td')[0], headerTableElement.getElementsByTagName('td')[1], headerTableElement.getElementsByTagName('td')[2], headerTableElement.getElementsByTagName('td')[3], headerTableElement.getElementsByTagName('td')[4], headerTableElement.getElementsByTagName('td')[5], headerTableElement.getElementsByTagName('td')[6],headerTableElement.getElementsByTagName('td')[7],headerTableElement.getElementsByTagName('td')[8],headerTableElement.getElementsByTagName('td')[9],headerTableElement.getElementsByTagName('td')[10],headerTableElement.getElementsByTagName('td')[11],]
+        let headerCols = Array.from(headerTableElement.getElementsByTagName('td'))//.splice(2)
+        const rowCells = scrollableTableContainer.getElementsByTagName('td')
+        console.log(rowCells);
+        for(let i=0; i < headerCols.length && rowCells.length >= headerCols.length; i++){
+            applySourceCellWidth(rowCells[i], headerCols[i])
+            // headerCols[i].style.minWidth = rowCells[i].offsetWidth + "px"
+            // headerCols[i].style.width = rowCells[i].offsetWidth + "px"
+            // if(headerCols[i].offsetWidth > rowCells[i].offsetWidth){
+            //     headerCols[i].style.maxWidth = rowCells[i].offsetWidth + "px"
+            // }
+        }
+        
+    })
+
+    function updateTableHeaderPositions() {
+        let cols = dataTableElement.getElementsByTagName('th')
+        for(let i = 0; i < cols.length-1; i++){
+            // th.style.left = ++l + "px";
+            // console.log(table.children[1].children[0].children[0]);
+            if(dataTableElement.children[1].children[0]){
+                    // console.log(table.children[1].children[0].children[i]);
+                    // let colData = table.getElementsByTagName('td')[i].getBoundingClientRect()
+                    let colData = dataTableElement.children[1].children[0].children[i].getBoundingClientRect()
+                    cols[i].style.top = (searchTextElement.getBoundingClientRect().top + searchTextElement.getBoundingClientRect().height) + "px"
+                    cols[i].style.left = colData.left + "px"
+                    // let width = colData.offsetWidth - parseFloat(window.getComputedStyle(ths[i]).paddingLeft)
+                    let horizontalPadding = parseFloat(window.getComputedStyle(cols[i]).paddingLeft) + parseFloat(window.getComputedStyle(cols[i]).paddingRight)
+                    let width = colData.width - horizontalPadding
+                    // let pdRight = 
+                    // console.log(width);
+                    // cols[i].style.width = width + "px"
+                    // ths[i].width = colData.offsetWidth + "px"
+            }
+        }
+        // table.getElementsByTagName('tbody')[0].style.transform = "translateY(33px)"
+    }
+
+    function updateTableHeaderPositions2() {
+        let cols = dataTableElement.getElementsByTagName('th')
+        for(let i = 0; i < cols.length-1; i++){
+            // th.style.left = ++l + "px";
+            // console.log(table.children[1].children[0].children[0]);
+            if(dataTableElement.children[1].children[0]){
+                    // console.log(table.children[1].children[0].children[i]);
+                    // let colData = table.getElementsByTagName('td')[i].getBoundingClientRect()
+                    let colData = dataTableElement.children[1].children[0].children[i].getBoundingClientRect()
+                    cols[i].style.top = colData.top + "px"
+                    cols[i].style.left = colData.left + "px"
+                    // let width = colData.offsetWidth - parseFloat(window.getComputedStyle(ths[i]).paddingLeft)
+                    let horizontalPadding = parseFloat(window.getComputedStyle(cols[i]).paddingLeft) + parseFloat(window.getComputedStyle(cols[i]).paddingRight)
+                    let width = colData.width - horizontalPadding
+                    // let pdRight = 
+                    // console.log(width);
+                    cols[i].style.width = width + "px"
+                    // ths[i].width = colData.offsetWidth + "px"
+            }
+        }
+        // table.getElementsByTagName('tbody')[0].style.transform = "translateY(33px)"
+    }
+
+
 
     function resizableGrid(table) {
         
@@ -244,17 +330,25 @@
         }
 
         function setListeners(div) {
-            var pageX, curCol, nxtCol, curColWidth, nxtColWidth;
+            var pageX, curCol, curDataTblCol, nxtCol, nxtDataTblCol, curColWidth, nxtColWidth;
 
             div.addEventListener("mousedown", function (e) {
                 curCol =
                     e.target.parentElement.getElementsByClassName(
                         "tbl-head-container"
                     )[0];
-                nxtCol =
+                    // [e.target.parentElement.children].
+
+                    const index = [...Array.from(e.target.parentElement.parentElement.children)].indexOf(e.target.parentElement);
+                    // console.log(index);
+                    // console.log(Array.from(e.target.parentElement.parentElement.children));
+                    // console.log(dataTableElement.children[0].children[0].children[index]);
+                    curDataTblCol = dataTableElement.children[0].children[0].children[index]
+                    nxtCol =
                     curCol.parentElement.nextElementSibling.getElementsByClassName(
                         "tbl-head-container"
-                    )[0];
+                        )[0];
+                        nxtDataTblCol = dataTableElement.children[0].children[0].children[index + 1]
                 pageX = e.pageX;
 
                 var padding = paddingDiff(curCol);
@@ -274,10 +368,22 @@
 
             document.addEventListener("mousemove", function (e) {
                 if (curCol) {
-                    var diffX = e.pageX - pageX;
-                    if (nxtCol) nxtCol.style.width = nxtColWidth - diffX + "px";
-
-                    curCol.style.width = curColWidth + diffX + "px";
+                    let diffX = e.pageX - pageX;
+                    if(diffX)
+                    console.log(`diff: ${e.pageX - pageX}`);
+                    if (nxtCol) {
+                        applyCellWidth(nxtCol, nxtColWidth - diffX)
+                        // nxtCol.style.width = nxtColWidth - diffX + "px";
+                        // nxtDataTblCol.style.minWidth = nxtColWidth - diffX + "px";
+                        applyCellWidth(nxtDataTblCol, nxtColWidth - diffX)
+                    }
+                    
+                    applyCellWidth(curCol, curColWidth + diffX)
+                    // curCol.style.width = curColWidth + diffX + "px";
+                    //set width of same column in next table
+                    console.log('prev width: ' + curDataTblCol.offsetWidth + 'setting new width: '+curColWidth + diffX);
+                    applyCellWidth(curDataTblCol, curColWidth + diffX)
+                    // curDataTblCol.style.minWidth = curColWidth + diffX + "px";
                 }
             });
 
@@ -292,10 +398,10 @@
 
         function createDiv() {
             var div = document.createElement("div");
-            div.style.top = 0;
-            div.style.right = 0;
-            div.style.width = "5px";
-            div.style.position = "absolute";
+            // div.style.top = 0;
+            // div.style.right = 0;
+            // div.style.width = "5px";
+            // div.style.position = "absolute";
             div.style.cursor = "col-resize";
             div.style.userSelect = "none";
             div.className = "columnSelector";
@@ -317,6 +423,24 @@
         }
     }
 
+    function applySourceCellWidth(source, target) {
+        console.log('prev width: ' + target.offsetWidth + 'setting new width: '+source.offsetWidth);
+        applyCellWidth(target, source.offsetWidth)
+        // target.style.minWidth = source.offsetWidth + "px"
+        //     target.style.width = source.offsetWidth + "px"
+        //     if(target.offsetWidth > source.offsetWidth){
+        //         target.style.maxWidth = source.offsetWidth + "px"
+        //     }
+    }
+
+    function applyCellWidth(target, width) {
+        target.style.minWidth = width + "px"
+            target.style.width = width + "px"
+            if(target.offsetWidth > width){
+                target.style.maxWidth = width + "px"
+            }
+    }
+
     const openFilter = (clickedElement) => {
         //Go to the nearest div as we want to attach it there (not on the svg icon)
         while (
@@ -326,7 +450,7 @@
             clickedElement = clickedElement.parentElement;
         }
 
-        if (clickedElement.children.length > 1) {
+        if (clickedElement.children.length > 1) { //Already poped! Hide it
             if (clickedElement.children[1].style.display == "block") {
                 clickedElement.children[1].style.display = "none";
             } else {
@@ -357,13 +481,42 @@
         type="text"
         class="input is-small column is-full"
         bind:value={searchText}
+        bind:this={searchTextElement}
         placeholder="Search"
     />
-
+    <div class="header-table-parent-container" bind:this={headerTableContainerElement}>
+        <div class="header-inner">
+            <table class="svelte-elements-header-table" style="height: 57px; width: auto;" cellpadding="0" cellspacing="0" bind:this={headerTableElement}>
+                <!-- <tr> -->
+                    <tr class="is-primary">
+                    {#each headers as label}
+                    <td class="is-primary">
+                        <div class="tbl-head-container is-primary" bind:this={tblHeadContainerElement}>
+                            <div style="float: left" class="tbl-head-txt">
+                                {label}
+                            </div>
+                            <div style="float: right" class="tbl-head-icon">
+                                <div
+                                on:click={(element) => {
+                                    openFilter(element.target);
+                                }}
+                                >
+                                <Icon icon={faCaretDown} />
+                            </div>
+                        </div>
+                    </div>
+                    </td>
+                    {/each}
+                                <!-- </tr> -->
+                            <!-- <th>Details</th>             -->
+                </tr>
+            </table>
+        </div>
+    </div>
     <!-- Table based impl -->
     <div class="svelte-elements-datatable-table-container" bind:this={scrollableTableContainer}>
-        <table id="mx" class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth {cssClass}" bind:this={table}>
-            <thead>
+        <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth {cssClass}" bind:this={dataTableElement}>
+            <!-- <thead>
                 <tr>
                     {#each headers as label}
                         <th class="is-primary">
@@ -385,7 +538,7 @@
                     {/each}
                     <th>Details</th>
                 </tr>
-            </thead>
+            </thead> -->
             <tbody>
                 {#each filteredList as resource}
                     <tr>
@@ -410,12 +563,30 @@
 </div>
 
 <style lang="scss">
-    * {
-        box-sizing: border-box;
-    }
-    table {
-        border-collapse: collapse;
-    }
+    // * {
+    //     box-sizing: border-box;
+    // }
+    // table {
+    //     border-collapse: collapse;
+    //     width: 100%
+    // }
+    // tbody {
+    //     overflow: auto;
+    //     height: 500px;
+    // }
+    // thead {
+    //     display: table;
+    //      float: left;
+    //      width: 100%;
+    // }
+    // thead tr {
+    //      display: table-row;
+    //      width: 100%;
+    //      }
+    //      tbody tr {
+    //      display: table;
+    //      width: 100%;
+    //      }
     td,
     th {
         padding: 5px 15px;
@@ -427,14 +598,44 @@
         border: 1px solid #000;
     }
 
+    th {
+        position: fixed;
+    }
+
     .results {
         margin-top: 25px;
     }
 
     .svelte-elements-datatable-table-container {
         overflow: auto;
-        // width: 1200px;
         height: 500px;
+        width: 100%;
+        td {
+            max-width: 50px; 
+        }
+    }
+
+    .header-table-parent-container{
+        // overflow: auto;
+        // background-color: red;
+    position: relative;
+    height: 57px;
+    overflow: hidden;
+    // width: 452px;
+    margin: 0px auto;
+    }
+    .header-inner {
+        position: absolute;
+    left: 0;
+    right: 0;
+    // bottom: -17px; /* Increase/Decrease this value for cross-browser compatibility */
+    overflow-x: scroll;
+    }
+
+    .svelte-elements-header-table {
+        td{
+            // width: auto;
+        }
     }
 
     .tbl-head-icon {
@@ -449,31 +650,27 @@
 
     .columnSelector {
         //Resize handle
+        border-right: "2px solid #42ca10";
         :hover {
             border-right: "2px solid #0000f";
         }
     }
 
-    th {
-        position: sticky;
-        position: -webkit-sticky;
-        top: 0;
-    }
+    // th {
+    //     position: sticky;
+    //     position: -webkit-sticky;
+    //     top: 0;
+    // }
 
     td {
         white-space: nowrap;
         padding: 0;
         text-overflow: ellipsis;
         overflow: hidden;
-        max-width: 50px; //This is the minimum width a column can resize
+        // max-width: 50px; //This is the minimum width a column can resize
     }
 
-    .headers {
-        background-color: $primary;
-        $primary-invert: green !default;
-        color: $primary-invert;
-    }
-
+    
     .filter-menu {
         background-color: rgb(53, 46, 46);
         position: absolute;
@@ -482,19 +679,6 @@
         left: 0;
     }
 
-    .paging-area {
-        margin-top: 48px;
-        text-align: center;
-    }
-
-    .current-page {
-        $primary-light: red !default;
-        background-color: $primary-light;
-    }
-
-    .empty-row {
-        min-height: 48px;
-    }
 
     a :global(.arrows) {
         font-size: x-large;
