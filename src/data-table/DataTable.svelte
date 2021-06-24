@@ -2,6 +2,7 @@
     import Icon from "fa-svelte";
     import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
     import { afterUpdate, onMount } from "svelte";
+import FilterMenu from "./FilterMenu.svelte";
 
     export let resourceList; // Promise that resolves a list
     export let headers = []; //Optinal header label
@@ -317,39 +318,6 @@
         }
     }
 
-    const openFilter = (clickedElement) => {
-        //Go to the nearest div as we want to attach it there (not on the svg icon)
-        while (
-            clickedElement.nodeName != "DIV" ||
-            clickedElement.classList.contains("filter-menu")
-        ) {
-            clickedElement = clickedElement.parentElement;
-        }
-
-        if (clickedElement.children.length > 1) {
-            if (clickedElement.children[1].style.display == "block") {
-                clickedElement.children[1].style.display = "none";
-            } else {
-                clickedElement.children[1].style.display = "block";
-            }
-            return;
-        } else {
-            let templateMenu = outerMostContainerDiv
-                .getElementsByClassName("filter-menu")[0];
-            let menu = document.createElement("div");
-            menu.style.display = "block";
-            menu.classList = [...menu.classList, "filter-menu"];
-            menu.innerHTML = templateMenu.innerHTML;
-            menu.style.position = "absolute";
-            menu.style.backgroundColor = "#3d3e40"; //Better if we can style this in css using classes. But it doesn't work
-            menu.style.left = 0;
-            menu.style.width = "100%";
-            menu.onclick = (event) => {
-                event.stopPropagation(); //otherwise clicking on checkbox may immidiately close it
-            };
-            clickedElement.appendChild(menu);
-        }
-    };
 </script>
 
 <div class="columns is-multiline data-list-container" bind:this={outerMostContainerDiv}>
@@ -365,20 +333,16 @@
         <table id="mx" class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth {cssClass}" bind:this={table}>
             <thead>
                 <tr>
-                    {#each headers as label}
+                    {#each headers as label, headerIndex} <!-- headerIndex will be mapped with keys - same order is assumed -->
                         <th class="is-primary">
                             <div class="tbl-head-container">
                                 <div style="float: left" class="tbl-head-txt">
                                     {label}
                                 </div>
                                 <div style="float: right" class="tbl-head-icon">
-                                    <div
-                                        on:click={(element) => {
-                                            openFilter(element.target);
-                                        }}
-                                    >
-                                        <Icon icon={faCaretDown} />
-                                    </div>
+                                    {#if keys}
+                                        <FilterMenu items={filterMap[keys[headerIndex]]}></FilterMenu>
+                                    {/if}
                                 </div>
                             </div>
                         </th>
@@ -400,13 +364,13 @@
         </table>
     </div>
 
-    <div class="filter-menu">
+    <!-- <div class="filter-menu">
         This is some div
         <input type="checkbox" /><label for="chk">Item1</label><br>
         <input type="checkbox" /><label for="chk">Item1</label><br>
         <input type="checkbox" /><label for="chk">Item1</label><br>
         <input type="checkbox" /><label for="chk">Item1</label><br>
-    </div>
+    </div> -->
 </div>
 
 <style lang="scss">
