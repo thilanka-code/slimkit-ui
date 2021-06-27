@@ -4,6 +4,7 @@
     import ResourceListDemo from "./ResourceList/ResourceListDemo.svelte";
     import SidebarDemo from "./Sidebar/SidebarDemo.svelte";
     import TypeaheadDemo from "./Typeahead/TypeaheadDemo.svelte";
+import TreeTableDemo from "./TreeTable/TreeTableDemo.svelte";
     
 </script>
 
@@ -26,6 +27,10 @@
 <section class="section">
     <h1 class="title is-2">Resource List</h1>
     <ResourceListDemo />
+</section>
+<section class="section">
+    <h1 class="title is-2">Tree Table</h1>
+    <TreeTableDemo />
 </section>
 <section class="section">
     <h1 class="title is-2">Typeahead</h1>

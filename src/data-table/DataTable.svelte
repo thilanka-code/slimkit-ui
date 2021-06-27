@@ -25,6 +25,7 @@ import FilterMenu from "./FilterMenu.svelte";
     let keys; //keys of object array provided
     let filteredList = []; //actual data rendered on table
     let filterMap = {} // {key: uniqueValuesArray[]}
+    let rowSelected = -1 //This row will be highlighted
 
     $: {
         resourceList.then((items) => {
@@ -223,6 +224,13 @@ import FilterMenu from "./FilterMenu.svelte";
 
     })
 
+    const onRowSelected = (row) => {
+        // console.log(filteredList[row.index]);
+        console.log(row.index);
+        // console.log(row.index);
+        rowSelected = row.index
+    }
+
     /**
      * This code will run on every update to the DOM!
     */
@@ -351,8 +359,8 @@ import FilterMenu from "./FilterMenu.svelte";
                 </tr>
             </thead>
             <tbody>
-                {#each filteredList as resource}
-                    <tr>
+                {#each filteredList as resource, index}
+                    <tr on:click={(element) => { onRowSelected({element: element.target, index}); } } class:tbl-row-selected={index == rowSelected} >
                         {#each keys as key}
                             <!-- We will skip keys starting with __ as they are meta columns -->
                             {#if !key.startsWith("__")}<td>{resource[key]}</td
@@ -374,6 +382,7 @@ import FilterMenu from "./FilterMenu.svelte";
 </div>
 
 <style lang="scss">
+    $primary-light: yellow !default;
     * {
         box-sizing: border-box;
     }
@@ -399,6 +408,10 @@ import FilterMenu from "./FilterMenu.svelte";
         overflow: auto;
         // width: 1200px;
         height: 500px;
+    }
+
+    .tbl-row-selected {
+        background-color: $primary-light;
     }
 
     .tbl-head-icon {
