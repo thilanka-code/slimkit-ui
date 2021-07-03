@@ -12,7 +12,7 @@
 	}
 
     function sidebarCollapsed(evt) {
-		isSideBarCollapsed = evt.detail;
+		// isSideBarCollapsed = evt.detail;
 	}
 
   let ie11 = false
