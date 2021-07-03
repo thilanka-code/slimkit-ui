@@ -11,6 +11,7 @@
   export let activeIndex;
   export let currentPath;
   export let ie11=false;
+  export let safari=false; //Sidebar hide animation will be disabled due to slow issue in safari 12-13
 
   let sidebarContainer;
   let isCollapsed;
@@ -132,15 +133,15 @@ const onFocusOut = () => {
     }
   };
   
-  if(ie11){
-    mediaQ.addListener("change", onScreenChange);
-  } else {
+  if(mediaQ.addListener){ //webkit and ie11 support
+    mediaQ.addListener(onScreenChange);
+  } else { //all modern browsers
     mediaQ.addEventListener("change", onScreenChange); //This will not work in IE 11 and webview
   }
 
   onDestroy(() => {
-    if(ie11){
-      mediaQ.removeListener("change", onScreenChange)
+    if(mediaQ.addListener){
+      mediaQ.removeListener(onScreenChange)
     } else {
       mediaQ.removeEventListener("change", onScreenChange)
     }
@@ -184,6 +185,17 @@ const onFocusOut = () => {
     max-width: 0;
   }
 
+  aside.collapsed-safari {
+    // transform: translateX(-300px);
+    overflow: hidden;
+    display: none;
+    // transition: transform 0.25s ease-out 0s, height 0.25s ease-out 0.25s,
+      // max-width 0.25s ease-out 0.15s;
+    /* transition: height 0.45s ease-in-out; */
+    height: 0;
+    max-width: 0;
+  }
+
   aside.onTop {
     /* This will display over on the content on the right; */
     position: absolute;
@@ -199,7 +211,8 @@ const onFocusOut = () => {
 <aside
   id="_sv_lib_sidebar_container"
   class="menu {cssClass}"
-  class:collapsed={isCollapsed}
+  class:collapsed={isCollapsed && !safari}
+  class:collapsed-safari={isCollapsed && safari}
   class:onTop={isSmallScreen}
   bind:this={sidebarContainer}
   on:click_outside={onFocusOut}
