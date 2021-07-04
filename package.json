@@ -7,6 +7,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "rollup -c",
+    "build-demos": "rollup -c component-demos/rollup.config.js",
     "dev": "set PORT=5000 && rollup -c component-demos/rollup.config.js -w",
     "start": "sirv component-demos/public --single",
     "prepublishOnly": "npm run build",
@@ -38,6 +39,7 @@
     "copyfiles": "^2.4.0",
     "core-js": "^3.12.1",
     "del-cli": "^3.0.0",
+    "execa": "latest",
     "es-check": "^5.2.3",
     "fa-svelte": "^3.1.0",
     "jest": "^25.2.7",
