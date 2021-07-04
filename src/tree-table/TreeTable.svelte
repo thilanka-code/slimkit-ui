@@ -39,9 +39,6 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
         for(const childKey of childKeys){
             let field = valueObject[childKey]
             let propertyLabel = field.label ? field.label : childKey
-            for (let i = 0; i < parentDepth; i++) {
-                propertyLabel = "&nbsp;" + "&nbsp;" + propertyLabel
-            }
             if(!field.value) {
                 rowData.push({label: propertyLabel, value: "", depth: parentDepth, element: {}, collapsed: false, isChildrenCollapsed: false })
                 addRowRecursive(field, parentDepth)
@@ -76,13 +73,14 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
     <div class="tree-table-body-container">
         {#each rowData as data, index}
         <div class="tree-table-row" bind:this={elementList[index].element} class:tree-table-row-hidden={rowData[index].collapsed}>
-            <div class="tree-table-cell">
+            <!-- <div class="tree-table-cell" style="margin-left: {data.depth * 20}px;"> -->
+            <div class="tree-table-cell" style="padding-left: {data.depth * 20}px;">
                 {#if !data.isLeaf}
                     <a on:click={()=> onCollapseClicked(index)} class="colored-link">
                         <Icon icon={data.isChildrenCollapsed ? faPlusSquare : faMinusSquare } />
                     </a>
                 {/if}
-                {@html data.label} {data.depth}
+                {@html data.label}
             </div>
             <div class="tree-table-cell">{data.value}</div>
         </div>
