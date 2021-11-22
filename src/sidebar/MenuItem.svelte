@@ -43,6 +43,7 @@
         &:hover {
             $slimkit-sidebar-hover-menu-bg: #ddd !default;
             background-color: $slimkit-sidebar-hover-menu-bg;
+            // background-color: $primary-dark;
             $slimkit-sidebar-hover-menu-text: black !default;
             color: $slimkit-sidebar-hover-menu-text;
         }

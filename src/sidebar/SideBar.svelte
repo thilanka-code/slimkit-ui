@@ -10,7 +10,7 @@
   export let menu;
   export let activeIndex;
   export let currentPath;
-  export let ie11=false;
+  export let ie11=false; //Used to detect clickOutside for IE11
   export let safari=false; //Sidebar hide animation will be disabled due to slow issue in safari 12-13
 
   let sidebarContainer;
