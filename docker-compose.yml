@@ -1,0 +1,28 @@
+version: "3.5"
+
+services: 
+    slimkit-ui-dev:
+        image: zirconlabz/node12
+        container_name: slimkit-ui-dev
+        hostname: slimkit-ui-dev
+        # restart: unless-stopped
+        ports: 
+            - 5006:5000 
+            - 35729:35729 #Livereloadjs port
+        env_file: .env
+        volumes: 
+            - ./:/app
+
+        # command: sh -c "npm run dev"
+        # command: sh -c "whoami"
+        command: sh -c "npm install && npm run dev"
+        # command: /bin/sh
+        # command: np
+        # tty: true  
+        # environment: 
+        #     -
+
+networks:
+    default:
+        external: true
+        name: home

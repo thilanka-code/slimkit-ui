@@ -32,3 +32,9 @@ Go to your local project and copy .tgz to project root
 delete node_modules/@slimkit-ui/svelte-elements
 
 npm i slimkit-ui-svelte-elements-0.0.8.tgz
+
+How to run locally using docker
+-------------------------------
+
+docker-compose up -d
+

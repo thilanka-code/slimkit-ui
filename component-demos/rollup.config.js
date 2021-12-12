@@ -76,7 +76,10 @@ export default {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: './component-demos/public/build/index.js'
+		file: './component-demos/public/build/index.js',
+		global: {
+			"@svgdotjs/svg.js": "SVG"
+		}
 	},
 	plugins: [
 		svelte({

@@ -5,6 +5,7 @@
     import SidebarDemo from "./Sidebar/SidebarDemo.svelte";
     import TypeaheadDemo from "./Typeahead/TypeaheadDemo.svelte";
 import TreeTableDemo from "./TreeTable/TreeTableDemo.svelte";
+import SvgTableDemo from "./SvgTable/SvgTableDemo.svelte";
     
 </script>
 
@@ -81,6 +82,10 @@ import TreeTableDemo from "./TreeTable/TreeTableDemo.svelte";
 
 <h1 class="title is-1">Svelte Element - Demo</h1>
 
+<section class="section">
+    <h1 class="title is-2">SVG Based Table</h1>
+    <SvgTableDemo />
+</section>
 <section class="section">
     <h1 class="title is-2">Data Table</h1>
     <DataTableDemo />
