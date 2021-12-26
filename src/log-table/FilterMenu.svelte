@@ -22,6 +22,7 @@
 <style>
     .filter-menu {
         background-color: rgb(53, 46, 46);
+        font-size: small;
         position: absolute;
         width: 100%;
         overflow: auto;

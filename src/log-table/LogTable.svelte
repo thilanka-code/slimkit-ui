@@ -1,15 +1,30 @@
 <script>
+    /**
+     * This is a read only data table that can be updated 
+    */
     import Icon from "fa-svelte";
     import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
-    import { afterUpdate, onMount } from "svelte";
-import FilterMenu from "./FilterMenu.svelte";
+    import { afterUpdate, createEventDispatcher, onMount } from "svelte";
+    import FilterMenu from "./FilterMenu.svelte";
 
     export let resourceList; // Promise that resolves a list
     export let headers = []; //Optinal header label
     export let maxItems = 5;
     export let cssClass = "";
+    export let autoScrollOnTableUpdate = true
+    export const appendItem = (item) => {
+        const new_items = add_url_to_items([item]).map((it)=> {
+            return {...it, __index: processedItems.length}
+        })
+        processedItems = [...processedItems, ...new_items]
+        if (autoScrollOnTableUpdate) {
+            currentPage = pages
+            scrollToBottom()
+        }
+    }
     let currentPage = 1;
     let pages = 1;
+    let lastInputIndex = 0
     $: pageNums = Array.apply(0,Array(pages)).map((_, x)=>x+1)
 
     const ELEMENT_NAME = "ResourceList";
@@ -21,39 +36,23 @@ import FilterMenu from "./FilterMenu.svelte";
     let scrollWait //If true no scroll events will be intercepted until set to true : this is to throttle
     let scrollTopLast //Last scrollTop value to determine current scroll direction - will be initialized in afterUpdate by its initial value
     let isLoading = true;
-    let resources; //what's this? same as processedItems used to calculate paging
+    let processedItems
     let keys; //keys of object array provided
     let filteredList = []; //actual data rendered on table
     let filterMap = {} // {key: uniqueValuesArray[]}
     let rowSelected = -1 //This row will be highlighted
+    let ignoreNextScrollEvent
+    let lastCall
+    let scrollDirection
+    let autoScrolled
+    let tableResized
+    let tabelRowHeight
+    let tableContainerHeight
+    let headerHeight
+    let scrollEdgeOffset // space between scroll bar and edge when jumping to trigger inifinite scroll
+    let viewportRows
 
-    $: {
-        resourceList.then((items) => {
-            currentPage = 1; //Reset page number every time the resourceList changes
-            //Pre processing of items
-            // const processedItems = items.map((it, i) => {
-            const processedItems = items.map((it) => {
-                // it['id'] = i
-                // console.log(i);
-                if (!it.__url) {
-                    it.__url = "#";
-                }
-                return it;
-            });
-            isLoading = false;
-            resources = processedItems;
-            filteredList = processedItems;
-
-            if (processedItems.length > 0) {
-                keys = Object.keys(processedItems[0]);
-            }
-            // Seperate function is needed to prevent infinite reactive loop
-            //https://github.com/sveltejs/svelte/issues/4420
-            // validateIfObjectKeysMatchHeaders(); //Why is this commented?
-            resizeTable();
-            captureUniqueItemsToFilter(items) //runs on all items for once promise reolve
-        });
-    }
+    const dispatch = createEventDispatcher();
 
     const pageRight = ()=> {
         currentPage = currentPage == pageNums.length ? currentPage : currentPage + 1
@@ -114,11 +113,14 @@ import FilterMenu from "./FilterMenu.svelte";
             );
     };
 
-    $: {
+    $: { //Triggers when search or currentPage changes
+        if (tabelRowHeight) {
+            viewportRows = Math.round((tableContainerHeight - headerHeight)/tabelRowHeight)
+        }
         if (searchText) {
             let i = 0
             let tempList = [];
-            for (let item of resources) {
+            for (let item of processedItems) {
                 for (let key of keys) {
                     if (item[key] && (item[key] + "").toLowerCase().indexOf(searchText.toLowerCase()) >= 0) {
                         tempList.push(item);
@@ -127,23 +129,49 @@ import FilterMenu from "./FilterMenu.svelte";
                     i++
                 }
             }
-            // console.log("Done searching.. Iterations: "+i);
             currentPage = 1; //Reset page number every time the user search
             let startIndex = currentPage * maxItems - maxItems;
             let endIndex = startIndex + maxItems;
             let temp = Math.trunc(tempList.length / maxItems);
             pages = tempList.length % maxItems > 0 ? ++temp : temp;
-            filteredList = tempList.slice(startIndex, endIndex);
+            let paged_items = tempList.slice(startIndex, endIndex)
+            if (currentPage != 1 && currentPage == pages && viewportRows > paged_items.length) { //To make scroll appear 
+                paged_items = tempList.slice(startIndex-(viewportRows - paged_items.length), endIndex)
+            }
+            filteredList = paged_items;
         } else {
             let startIndex = currentPage * maxItems - maxItems;
             let endIndex = startIndex + maxItems;
-            // console.log(`curPage: ${currentPage} max: ${maxItems} start: ${startIndex} end: ${endIndex} pages: ${pages}`);
-            if (resources) {
-                let temp = Math.trunc(resources.length / maxItems);
-                pages = resources.length % maxItems > 0 ? ++temp : temp;
-                filteredList = resources.slice(startIndex, endIndex); //Consider paging
+            
+            if (processedItems) {
+                // filteredList = get_items_for_current_page(processedItems)
+                let temp = Math.trunc(processedItems.length / maxItems);
+                pages = processedItems.length % maxItems > 0 ? ++temp : temp;
+                
+                // filteredList = get_items_for_current_page(tempList)
+                let paged_items = processedItems.slice(startIndex, endIndex)
+                if (currentPage != 1 && currentPage == pages && viewportRows > paged_items.length) { //To make scroll appear 
+                    paged_items = processedItems.slice(startIndex-(viewportRows - paged_items.length), endIndex)
+                }
+                filteredList = paged_items;
             }
         }
+    }
+
+    /**
+     * @deprecated We can't use this inside a $:{} 
+     * @param itemList
+     */
+    function get_items_for_current_page(itemList) {
+        let startIndex = currentPage * maxItems - maxItems;
+        if (currentPage == pages.length) {
+            console.log('last page');
+
+        }
+        let endIndex = startIndex + maxItems;
+        let temp = Math.trunc(itemList.length / maxItems);
+        pages = itemList.length % maxItems > 0 ? ++temp : temp;
+        return itemList.slice(startIndex, endIndex);
     }
 
     function resizeTable() {
@@ -152,17 +180,59 @@ import FilterMenu from "./FilterMenu.svelte";
             resizableGrid(tables[i]);
         }
     }
-    
-    let lastCall
-    let scrollDirection
-    let autoScrolled
-    onMount(()=>{
 
+    function add_url_to_items(items) {
+        return items.map((it) => {
+                // it['id'] = i
+                // console.log(i);
+                if (!it.__url) {
+                    it.__url = "#";
+                }
+                return it;
+            })
+    }
+    
+    onMount(()=>{
+        ///// Load initial data /////////////////////
+        resourceList.then((items) => {
+            currentPage = 1; //Reset page number every time the resourceList changes
+            //Pre processing of items
+            // const processedItems = items.map((it, i) => {
+                // items = []
+            processedItems = add_url_to_items(items.slice(lastInputIndex))
+                .map((it, i) => {
+                    return {...it, __index: i}
+                })
+            // console.log(processedItems[0]);
+            isLoading = false;
+            filteredList = processedItems;
+
+            if (processedItems.length > 0) {
+                keys = Object.keys(processedItems[0]);
+            }
+
+            // Seperate function is needed to prevent infinite reactive loop
+            //https://github.com/sveltejs/svelte/issues/4420
+            // validateIfObjectKeysMatchHeaders(); //Why is this commented?
+            resizeTable();
+            captureUniqueItemsToFilter(items) //runs on all items for once promise reolve
+            if(autoScrollOnTableUpdate) {
+                scrollToBottom()
+            }
+        });
+        ////////////////////////////////////////////////////////////////////
         scrollTopLast = scrollableTableContainer.scrollTop;
         scrollableTableContainer.addEventListener("scroll", ()=>{
 
-            // console.log(`sc rec: `);
+            if (ignoreNextScrollEvent) {
+                // Ignore this event because it was done programmatically
+                ignoreNextScrollEvent = false;
+                return;
+            }
 
+
+            // console.log(`not auto scroll bot`);
+    
             if(scrollableTableContainer.scrollTop == scrollTopLast) return
             
             if(scrollableTableContainer.scrollTop >= scrollTopLast){
@@ -177,14 +247,6 @@ import FilterMenu from "./FilterMenu.svelte";
                 if (lastCall) clearTimeout(lastCall);
                 lastCall = setTimeout(() => {
                         if(!autoScrolled){
-                            const tabelRowHeight = table.children[1].children[0].offsetHeight //table -> body -> tr
-                            // const tabelHeaderRowHeight = table.children[0].children[0].offsetHeight //table -> head -> tr
-
-                            // let viewportStartRow = Math.round(scrollableTableContainer.scrollTop/tabelRowHeight)
-                            
-                            // let viewportEndRow = Math.round((scrollableTableContainer.scrollTop + scrollableTableContainer.offsetHeight - tabelHeaderRowHeight - 1)/tabelRowHeight)
-                            // console.log(`scroll direction: ${scrollDirection} last pos: ${scrollTopLast} scrollTop: ${scrollableTableContainer.scrollTop} offsetHeight: ${scrollableTableContainer.offsetHeight} scrollHeightcur: ${scrollableTableContainer.scrollHeight} Page: ${currentPage}`);
-                            let scrollEdgeOffset = Math.round(tabelRowHeight/7) // space between scroll bar and edge when jumping to trigger inifinite scroll
                             if(scrollDirection == 'up' && scrollableTableContainer.scrollTop < 1){
                                 // console.log(`loading prev page now page: '${currentPage}' data`);
                                 if(currentPage != 1){
@@ -225,17 +287,24 @@ import FilterMenu from "./FilterMenu.svelte";
     })
 
     const onRowSelected = (row) => {
-        // console.log(filteredList[row.index]);
-        console.log(row.index);
-        // console.log(row.index);
         rowSelected = row.index
+        const out_object = {...processedItems[row.index], index: rowSelected}
+        delete out_object['__url']
+        delete out_object['__index']
+        dispatch("rowSelected", { index: row.index, row: out_object});
     }
 
     /**
      * This code will run on every update to the DOM!
     */
     afterUpdate(() => {
-        resizeTable();
+        if (!tabelRowHeight && table.children[1].children[0]) {
+            tabelRowHeight = table.children[1].children[0].offsetHeight
+        }
+        if(tableResized) { //Otherwise this will run everytime when resourceList is set at client side
+            resizeTable();
+            tableResized = true
+        }
     });
 
     function resizableGrid(table) {
@@ -326,6 +395,13 @@ import FilterMenu from "./FilterMenu.svelte";
         }
     }
 
+    function scrollToBottom() {
+        ignoreNextScrollEvent = true;
+        let scrollEdgeOffset = Math.round(tabelRowHeight/7) // space between scroll bar and edge when jumping to trigger inifinite scroll
+        let maxScrollableTop = scrollableTableContainer.scrollHeight - scrollableTableContainer.clientTop
+        scrollableTableContainer.scrollTop = maxScrollableTop - scrollEdgeOffset
+    }
+
 </script>
 
 <div class="columns is-multiline data-list-container" bind:this={outerMostContainerDiv}>
@@ -337,9 +413,9 @@ import FilterMenu from "./FilterMenu.svelte";
     />
 
     <!-- Table based impl -->
-    <div class="svelte-elements-datatable-table-container" bind:this={scrollableTableContainer}>
-        <table id="mx" class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth {cssClass}" bind:this={table}>
-            <thead>
+    <div class="svelte-elements-datatable-table-container" bind:this={scrollableTableContainer} bind:clientHeight={tableContainerHeight}>
+        <table id="mx" class="table is-bordered is-stripedx is-narrow is-hoverablex is-fullwidth {cssClass}" bind:this={table}>
+            <thead bind:clientHeight={headerHeight}>
                 <tr>
                     {#each headers as label, headerIndex} <!-- headerIndex will be mapped with keys - same order is assumed -->
                         <th class="is-primary">
@@ -359,8 +435,8 @@ import FilterMenu from "./FilterMenu.svelte";
                 </tr>
             </thead>
             <tbody>
-                {#each filteredList as resource, index}
-                    <tr on:click={(element) => { onRowSelected({element: element.target, index}); } } class:tbl-row-selected={index == rowSelected} >
+                {#each filteredList as resource}
+                    <tr on:click={(element) => { onRowSelected({element: element.target, index: resource.__index}); } } class:tbl-row-selected={resource.__index == rowSelected} >
                         {#each keys as key}
                             <!-- We will skip keys starting with __ as they are meta columns -->
                             {#if !key.startsWith("__")}<td>{resource[key]}</td
@@ -370,6 +446,7 @@ import FilterMenu from "./FilterMenu.svelte";
                 {/each}
             </tbody>
         </table>
+        
     </div>
 
     <!-- <div class="filter-menu">
@@ -412,6 +489,7 @@ import FilterMenu from "./FilterMenu.svelte";
 
     .tbl-row-selected {
         background-color: $primary-light;
+        // background-color: red;
     }
 
     .tbl-head-icon {
@@ -451,13 +529,14 @@ import FilterMenu from "./FilterMenu.svelte";
         color: $primary-invert;
     }
 
-    .filter-menu {
-        background-color: rgb(53, 46, 46);
-        position: absolute;
-        width: 100%;
-        display: none;
-        left: 0;
-    }
+    // .filter-menu {
+    //     background-color: rgb(53, 46, 46);
+    //     font-size: x-small;
+    //     position: absolute;
+    //     width: 100%;
+    //     display: none;
+    //     left: 0;
+    // }
 
     .paging-area {
         margin-top: 48px;
