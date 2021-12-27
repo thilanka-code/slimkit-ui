@@ -13,15 +13,23 @@
     export let cssClass = "";
     export let autoScrollOnTableUpdate = true
     export const appendItem = (item) => {
-        const new_items = add_url_to_items([item]).map((it)=> {
-            return {...it, __index: processedItems.length}
-        })
-        processedItems = [...processedItems, ...new_items]
-        if (autoScrollOnTableUpdate) {
-            currentPage = pages
-            scrollToBottom()
-        }
+        setTimeout(() => {
+            if (item_queue.length < max_queue_length) {
+                item_queue.push(item)
+                return
+            }
+
+            insert_items_to_table([...item_queue, item])
+
+            item_queue = []
+            last_queue_access = new Date()
+        }, 500);
     }
+    let last_queue_access
+    const max_queue_length = 10
+    const queue_flush_timeout = 3000
+    let cancel_queue_flusher
+    let item_queue = []
     let currentPage = 1;
     let pages = 1;
     let lastInputIndex = 0
@@ -37,7 +45,7 @@
     let scrollTopLast //Last scrollTop value to determine current scroll direction - will be initialized in afterUpdate by its initial value
     let isLoading = true;
     let processedItems
-    let keys; //keys of object array provided
+    let keys = []; //keys of object array provided
     let filteredList = []; //actual data rendered on table
     let filterMap = {} // {key: uniqueValuesArray[]}
     let rowSelected = -1 //This row will be highlighted
@@ -191,6 +199,20 @@
                 return it;
             })
     }
+
+    function insert_items_to_table(items) {
+        const new_items = add_url_to_items(items).map((it, index)=> {
+                return {...it, __index: (processedItems.length + index)}
+        })
+        if (keys.length == 0) {
+            keys = Object.keys(new_items[0]);
+        }
+        processedItems = [...processedItems, ...new_items]
+        if (autoScrollOnTableUpdate) {
+            currentPage = pages
+            scrollToBottom()
+        }
+    }
     
     onMount(()=>{
         ///// Load initial data /////////////////////
@@ -283,6 +305,13 @@
                     }, 100);
                 }
         })
+        cancel_queue_flusher = setInterval(() => { // Need to cancel this?
+            if ((new Date() - last_queue_access) > queue_flush_timeout && item_queue.length > 0) {
+                insert_items_to_table(item_queue)
+                item_queue = []
+                last_queue_access = new Date()
+            }
+        }, queue_flush_timeout);
 
     })
 
@@ -424,7 +453,7 @@
                                     {label}
                                 </div>
                                 <div style="float: right" class="tbl-head-icon">
-                                    {#if keys}
+                                    {#if keys && keys.length > 0}
                                         <FilterMenu items={filterMap[keys[headerIndex]]}></FilterMenu>
                                     {/if}
                                 </div>

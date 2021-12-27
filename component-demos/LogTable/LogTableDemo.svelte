@@ -4,7 +4,8 @@
     import { data } from "./data.json";
     let myDataTable
     let resources = new Promise((resolves) => {
-        let modified = data.slice(0,2).map((x, i)=>{
+        let modified = []
+        modified = data.slice(0,2).map((x, i)=>{
             return {...x, timestamp: i+''}
         })
         resolves(modified);
@@ -18,7 +19,7 @@
     // console.log(sample_record);
     let start = new Date()
     let cancel = setInterval(() => {
-        if (iteration == 5){
+        if (iteration == 2){
             console.log("Duration: "+(new Date() - start));
              clearInterval(cancel)
         }
@@ -30,7 +31,7 @@
         // });
         // console.log(iteration);
         iteration++;
-    }, 500);
+    }, 1);
 
     const rowSelected = (row) => {
         console.log("CLIENT: ");

@@ -2,7 +2,7 @@
     import Icon from "fa-svelte";
     import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
     import { afterUpdate, onMount } from "svelte";
-    export let items // Should be dynamic
+    export let items = [] // Should be dynamic
 
     let popupToggel
 
