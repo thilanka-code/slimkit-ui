@@ -208,7 +208,7 @@
             keys = Object.keys(new_items[0]);
         }
         processedItems = [...processedItems, ...new_items]
-        if (autoScrollOnTableUpdate) {
+        if (autoScrollOnTableUpdate && scrollableTableContainer) { // scrollableTableContainer will be null if this method get called before onMount fires
             currentPage = pages
             scrollToBottom()
         }
