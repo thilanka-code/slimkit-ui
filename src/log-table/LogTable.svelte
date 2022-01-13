@@ -39,6 +39,7 @@
     let outerMostContainerDiv //This will be bound by svelte - Outer parent
     let scrollableTableContainer //This will be bound by svelte - scroll bar will be applied to this
     let table //This will be bound by svelte - actual table
+    let loaderElement
     
     let searchText;
     let scrollWait //If true no scroll events will be intercepted until set to true : this is to throttle
@@ -47,7 +48,7 @@
     let processedItems
     let keys = []; //keys of object array provided
     let filteredList = []; //actual data rendered on table
-    let filterMap = {} // {key: uniqueValuesArray[]}
+    let filterMap = {} // {'col_name': [{key: 'LOG', value: true}]}
     let rowSelected = -1 //This row will be highlighted
     let ignoreNextScrollEvent
     let lastCall
@@ -73,26 +74,25 @@
 
     const captureUniqueItemsToFilter = (items)=> {
         
-        const maxUniqueValues = 10
-        const maxSearchableRows = 1000
+        const maxUniqueValues = 20 //expose as external params
+        const maxSearchableRows = 10000000 //expose as external params
         let filterableKeys = keys
-        let iterations = 0
         let i = 0
+        // let startTime = new Date()
         for(let item of items) {
             if(i>maxSearchableRows) break
             for(const key of filterableKeys) {
-                iterations++
                 if(filterMap[key]) {
-                    if(filterMap[key].indexOf(item[key]) >= 0){ //duplicated value for the key
+                    if(filterMap[key].findIndex(it=>it.key == item[key]) >= 0){ //duplicated value for the key
                         continue
                     }
                     if(filterMap[key].length < maxUniqueValues){
-                        filterMap[key] = [...filterMap[key], item[key]]
+                        filterMap[key] = [...filterMap[key], {key: item[key], value: false }]
                     } else {
                         filterableKeys = filterableKeys.filter(x=> x!= key) //remove key from further collecting unique values
                     }
                 } else {
-                    filterMap[key] = [item[key]]
+                    filterMap[key] = [{key: item[key], value: false }]
                 }
             }
             if(filterableKeys.length == 0){
@@ -100,7 +100,7 @@
             }
             i++
         }
-        // console.log(filterMap);
+        // console.log("Time: "+(new Date() - startTime));
         return {}
     }
 
@@ -125,10 +125,28 @@
         if (tabelRowHeight) {
             viewportRows = Math.round((tableContainerHeight - headerHeight)/tabelRowHeight)
         }
+        let temp_list = processedItems
+        
+        if (temp_list) {
+            for (const header of keys) {
+                const filters = filterMap[header].filter(it => it.value)
+                if (filters.length == 0) continue
+                let __temp = []
+                for (const filter of filters) {
+                    __temp = __temp.concat(temp_list.filter(it => it[header] == filter.key))
+                }
+                temp_list = __temp
+            }
+            //Sort results for their insertion order
+            temp_list = temp_list.sort((a,b) => a.__index > b.__index)
+            
+            filteredList = temp_list
+        }
+
         if (searchText) {
             let i = 0
             let tempList = [];
-            for (let item of processedItems) {
+            for (let item of filteredList) {
                 for (let key of keys) {
                     if (item[key] && (item[key] + "").toLowerCase().indexOf(searchText.toLowerCase()) >= 0) {
                         tempList.push(item);
@@ -151,15 +169,13 @@
             let startIndex = currentPage * maxItems - maxItems;
             let endIndex = startIndex + maxItems;
             
-            if (processedItems) {
-                // filteredList = get_items_for_current_page(processedItems)
-                let temp = Math.trunc(processedItems.length / maxItems);
-                pages = processedItems.length % maxItems > 0 ? ++temp : temp;
+            if (temp_list) {
+                let temp = Math.trunc(temp_list.length / maxItems);
+                pages = temp_list.length % maxItems > 0 ? ++temp : temp;
                 
-                // filteredList = get_items_for_current_page(tempList)
-                let paged_items = processedItems.slice(startIndex, endIndex)
+                let paged_items = temp_list.slice(startIndex, endIndex)
                 if (currentPage != 1 && currentPage == pages && viewportRows > paged_items.length) { //To make scroll appear 
-                    paged_items = processedItems.slice(startIndex-(viewportRows - paged_items.length), endIndex)
+                    paged_items = temp_list.slice(startIndex-(viewportRows - paged_items.length), endIndex)
                 }
                 filteredList = paged_items;
             }
@@ -268,33 +284,38 @@
                 scrollWait = true
                 if (lastCall) clearTimeout(lastCall);
                 lastCall = setTimeout(() => {
-                        if(!autoScrolled){
+                    if(!autoScrolled){
                             if(scrollDirection == 'up' && scrollableTableContainer.scrollTop < 1){
                                 // console.log(`loading prev page now page: '${currentPage}' data`);
                                 if(currentPage != 1){
-                                    pageLeft();
                                     autoScrolled = true 
+                                    isLoading = true
+                                    set_loader_positions()
+                                    pageLeft();
                                     setTimeout(() => {
                                         //Jump scrollbar
-                                        let maxScrollableTop = scrollableTableContainer.scrollHeight - scrollableTableContainer.clientTop
-                                        scrollableTableContainer.scrollTop = maxScrollableTop - scrollEdgeOffset
-                                    }, 80);
-
+                                        scrollableTableContainer.scrollTop = scrollableTableContainer.scrollHeight - scrollEdgeOffset - scrollableTableContainer.scrollTop - scrollableTableContainer.clientHeight 
+                                        isLoading = false
+                                    }, 800);
+                                    
                                 }
                             } else if(scrollDirection == 'down' && Math.round(scrollableTableContainer.scrollTop + scrollableTableContainer.offsetHeight) >= scrollableTableContainer.scrollHeight){ //scroll reached end
                                 //Rounding is required as in chrome scrollTop is a float
                                 if(currentPage != pageNums[pageNums.length-1]){
-                                    pageRight();
                                     autoScrolled = true 
                                     // scrollableTableContainer.style.pointerEvents = 'none' // To tame the crazy jumping effect when user press and hold scroll to the edge * cause slowness
+                                    isLoading = true
+                                    set_loader_positions()
+                                    pageRight();
                                     setTimeout(() => {
                                         //Jump scrollbar
-                                        scrollableTableContainer.scrollTop = scrollEdgeOffset
+                                        scrollableTableContainer.scrollTop = scrollEdgeOffset + tabelRowHeight
                                         // scrollableTableContainer.style.pointerEvents = 'auto' // To tame the crazy jumping effect when user press and hold scroll to the edge * cause slowness
-                                    }, 80);
+                                        isLoading = false
+                                    }, 800);
                                 }
                             }
-                                scrollWait = false
+                            scrollWait = false
                                 scrollTopLast = scrollableTableContainer.scrollTop
                             }else {
                                 scrollWait = false
@@ -334,6 +355,7 @@
             resizeTable();
             tableResized = true
         }
+        scrollEdgeOffset = Math.round(tabelRowHeight/7) // space between scroll bar and edge when jumping to trigger inifinite scroll
     });
 
     function resizableGrid(table) {
@@ -431,6 +453,33 @@
         scrollableTableContainer.scrollTop = maxScrollableTop - scrollEdgeOffset
     }
 
+    function set_loader_positions() {
+        let topPosition = scrollableTableContainer.scrollTop + (scrollableTableContainer.clientHeight/2)
+        loaderElement.style.top =  topPosition + "px"
+    }
+
+    function goToPrevPage() {
+        pageLeft()
+        autoScrolled = true 
+        scrollToBottom() 
+    }
+    
+    function goToNextPage() {
+        pageRight()
+        autoScrolled = true 
+        scrollableTableContainer.scrollTop = 0
+    }
+
+    function filter_changed(header, data) {
+        for (const filter of filterMap[header]) {
+            filter.value = data.indexOf(filter.key) >= 0
+        }
+        filterMap = filterMap
+        currentPage = 1; //Reset page number every time the filter applied
+    }
+
+
+
 </script>
 
 <div class="columns is-multiline data-list-container" bind:this={outerMostContainerDiv}>
@@ -454,7 +503,7 @@
                                 </div>
                                 <div style="float: right" class="tbl-head-icon">
                                     {#if keys && keys.length > 0}
-                                        <FilterMenu items={filterMap[keys[headerIndex]]}></FilterMenu>
+                                        <FilterMenu on:selection={(data)=> { filter_changed(label, data.detail) }} items={filterMap[keys[headerIndex]]}></FilterMenu>
                                     {/if}
                                 </div>
                             </div>
@@ -475,16 +524,12 @@
                 {/each}
             </tbody>
         </table>
-        
+        <div bind:this={loaderElement} class:loader={isLoading}></div>
     </div>
-
-    <!-- <div class="filter-menu">
-        This is some div
-        <input type="checkbox" /><label for="chk">Item1</label><br>
-        <input type="checkbox" /><label for="chk">Item1</label><br>
-        <input type="checkbox" /><label for="chk">Item1</label><br>
-        <input type="checkbox" /><label for="chk">Item1</label><br>
-    </div> -->
+    <div class="paged_controls">
+        <button class="button is-small" on:click={goToPrevPage}>&lt;</button>
+        <button class="button is-small" on:click={goToNextPage}>&gt;</button>
+    </div>
 </div>
 
 <style lang="scss">
@@ -583,5 +628,32 @@
 
     a :global(.arrows) {
         font-size: x-large;
+    }
+
+    .loader {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 1;
+        width: 120px;
+        height: 120px;
+        margin: -76px 0 0 -76px;
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid $primary;
+        -webkit-animation: spin 0.2s linear infinite;
+        animation: spin 0.2s linear infinite;
+    
+    }
+
+    /* Safari */
+    @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
     }
 </style>

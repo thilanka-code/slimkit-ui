@@ -5,7 +5,7 @@
     let myDataTable
     let resources = new Promise((resolves) => {
         let modified = []
-        modified = data.slice(0,2).map((x, i)=>{
+        modified = data.slice(0,20000).map((x, i)=>{
             return {...x, timestamp: i+''}
         })
         resolves(modified);
@@ -90,6 +90,6 @@
 <button on:click={x}>gett</button> -->
 
 <div class="column" id="logTable">
-    <LogTable bind:this={myDataTable} resourceList={resources} {headers} maxItems={50} cssClass="log-viewer-tbl" {autoScrollOnTableUpdate} on:rowSelected={rowSelected}/>
+    <LogTable bind:this={myDataTable} resourceList={resources} {headers} maxItems={500} cssClass="log-viewer-tbl" {autoScrollOnTableUpdate} on:rowSelected={rowSelected}/>
     <button on:click={()=>autoScrollOnTableUpdate = !autoScrollOnTableUpdate}>{updateBtnText}</button>
 </div>
