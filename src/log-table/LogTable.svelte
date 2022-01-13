@@ -509,7 +509,7 @@
                                     {label}
                                 </div>
                                 <div style="float: right" class="tbl-head-icon">
-                                    {#if keys && keys.length > 0}
+                                    {#if filterMap[keys[headerIndex]]  && keys && keys.length > 0}
                                         <FilterMenu on:selection={(data)=> { filter_changed(label, data.detail) }} items={filterMap[keys[headerIndex]]}></FilterMenu>
                                     {/if}
                                 </div>

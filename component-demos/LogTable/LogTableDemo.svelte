@@ -8,7 +8,7 @@
         modified = data.slice(100,101).map((x, i)=>{
             return {...x, timestamp: i+''}
         })
-        resolves(modified);
+        resolves([]);
         console.log('DataTable Resource Data Length:'+modified.length);
     });
     let autoScrollOnTableUpdate = true
@@ -18,7 +18,8 @@
     let sample_record = data.slice(0,1)[0]
     // console.log(sample_record);
     let start = new Date()
-    let cancel = setInterval(() => {
+    setTimeout(() => {
+        let cancel = setInterval(() => {
         if (iteration == 4){
             console.log("Duration: "+(new Date() - start));
              clearInterval(cancel)
@@ -32,6 +33,7 @@
         // console.log(iteration);
         iteration++;
     }, 1);
+    }, 3000);
 
     const rowSelected = (row) => {
         console.log("CLIENT: ");
