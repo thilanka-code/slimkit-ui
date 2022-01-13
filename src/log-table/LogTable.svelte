@@ -14,7 +14,7 @@
     export let autoScrollOnTableUpdate = true
     export const appendItem = (item) => {
         setTimeout(() => {
-            if (item_queue.length < max_queue_length) {
+            if (item_queue.length < max_queue_length && (new Date() - last_queue_access) < queue_flush_timeout) {
                 item_queue.push(item)
                 return
             }
@@ -121,6 +121,10 @@
             );
     };
 
+    $: { // Update the filters when new items are appended to the table
+        if(processedItems) captureUniqueItemsToFilter(processedItems) 
+    }
+
     $: { //Triggers when search or currentPage changes
         if (tabelRowHeight) {
             viewportRows = Math.round((tableContainerHeight - headerHeight)/tabelRowHeight)
@@ -128,6 +132,9 @@
         let temp_list = processedItems
         
         if (temp_list) {
+            if (Object.keys(filterMap).length === 0) { //Appending to an empty table may result in empty filterMap
+                captureUniqueItemsToFilter(temp_list)
+            }
             for (const header of keys) {
                 const filters = filterMap[header].filter(it => it.value)
                 if (filters.length == 0) continue
