@@ -5,7 +5,7 @@
     let myDataTable
     let resources = new Promise((resolves) => {
         let modified = []
-        modified = data.slice(0,20000).map((x, i)=>{
+        modified = data.slice(100,101).map((x, i)=>{
             return {...x, timestamp: i+''}
         })
         resolves(modified);
@@ -19,7 +19,7 @@
     // console.log(sample_record);
     let start = new Date()
     let cancel = setInterval(() => {
-        if (iteration == 2){
+        if (iteration == 4){
             console.log("Duration: "+(new Date() - start));
              clearInterval(cancel)
         }

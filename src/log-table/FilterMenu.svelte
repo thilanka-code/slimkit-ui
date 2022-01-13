@@ -13,13 +13,10 @@
 
     const openFilter = (clickedElement) => {
         //Go to the nearest div as we want to attach it there (not on the svg icon)
-        console.log(clickedElement);
         if(!popupToggel) {
             popupToggel = true
         } else if(clickedElement.nodeName == "svg" || clickedElement.nodeName == "path" || clickedElement.classList.contains("icon-container")) {
             popupToggel = false
-            console.log(popupToggel);
-
         }
     };
 
