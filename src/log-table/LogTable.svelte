@@ -509,7 +509,7 @@
                             </div>
                         </th>
                     {/each}
-                    <th>Details</th>
+                    <!-- <th>Details</th> -->
                 </tr>
             </thead>
             <tbody>
