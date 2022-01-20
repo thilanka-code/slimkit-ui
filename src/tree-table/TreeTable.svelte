@@ -109,6 +109,8 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
     .tree-table-header-container {
         display: grid;
         grid-template-columns: 50% 50%;
+        position: sticky;
+        top: 0;
     }
 
     .tree-table-body-container {
