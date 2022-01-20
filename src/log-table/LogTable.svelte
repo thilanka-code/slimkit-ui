@@ -503,7 +503,7 @@
     />
 
     <!-- Table based impl -->
-    <div class="svelte-elements-datatable-table-container" bind:this={scrollableTableContainer} bind:clientHeight={tableContainerHeight}>
+    <div class="column is-full svelte-elements-datatable-table-container" bind:this={scrollableTableContainer} bind:clientHeight={tableContainerHeight}>
         <table id="mx" class="table is-bordered is-stripedx is-narrow is-hoverablex is-fullwidth {cssClass}" bind:this={table}>
             <thead bind:clientHeight={headerHeight}>
                 <tr>
