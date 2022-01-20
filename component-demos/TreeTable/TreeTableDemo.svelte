@@ -14,6 +14,15 @@ let value = {
     },
     city: { value: "Colombo"}
 }
+
+// value = undefined
+
+const update = () => {
+    value = {
+        ...value,    
+        Division: { value: "IT"}
+    }
+}
     
     
     
@@ -37,3 +46,4 @@ let value = {
 </pre>
 
 <TreeTable {value} />
+<button on:click={update}>update tree table</button>

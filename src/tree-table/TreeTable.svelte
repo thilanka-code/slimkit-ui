@@ -1,17 +1,22 @@
 <script>
-import { onMount } from "svelte";
 import Icon from "fa-svelte";
 import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
 
-    export let value //Value object
+    export let value = {} //Value object
 
     let tableContainerElement
 
     let rowData = []
-    let elementList = []
+    // let elementList = []
+    let updating = true
 
-    onMount(()=>{
-        console.log(value);
+    $:{
+        populateTable(value)
+    }
+
+    function populateTable(value) { //Refactor var name
+        rowData = []
+        // elementList = []
         let keys = Object.keys(value)
         let depth = 0
         for(const key of keys){
@@ -25,13 +30,13 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
                 rowData.push({ label: propertyLabel, value: field.value, depth, element: {}, collapsed: false, isChildrenCollapsed: false, isLeaf: true })
             }
         }
-        elementList = rowData.map(v => { return {element: {}}})
+        // elementList = rowData.map(v => { return {element: {}}})
         
         setTimeout(() => { //To avoid mis calculation of table container height
             tableContainerElement.style.minHeight = tableContainerElement.offsetHeight + "px"
             
         }, 100);
-    })
+    }
 
     const addRowRecursive = (valueObject, parentDepth)=> {
         let childKeys = Object.keys(valueObject)
@@ -63,28 +68,30 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
         rowData[parentIndex].isChildrenCollapsed = !rowData[parentIndex].isChildrenCollapsed
     }
 
-
 </script>
+
 <div class="tree-table-container" bind:this={tableContainerElement}>
     <div class="tree-table-header-container">
         <div class="tree-table-header">Property</div>
         <div class="tree-table-header">Value</div>
     </div>
     <div class="tree-table-body-container">
-        {#each rowData as data, index}
-        <div class="tree-table-row" bind:this={elementList[index].element} class:tree-table-row-hidden={rowData[index].collapsed}>
-            <!-- <div class="tree-table-cell" style="margin-left: {data.depth * 20}px;"> -->
-            <div class="tree-table-cell" style="padding-left: {data.depth * 20}px;">
-                {#if !data.isLeaf}
-                    <a on:click={()=> onCollapseClicked(index)} class="colored-link">
-                        <Icon icon={data.isChildrenCollapsed ? faPlusSquare : faMinusSquare } />
-                    </a>
-                {/if}
-                {@html data.label}
+
+            {#each rowData as data, index}
+            <!-- <div class="tree-table-row" bind:this={elementList[index].element} class:tree-table-row-hidden={rowData[index].collapsed}> -->
+            <div class="tree-table-row" class:tree-table-row-hidden={rowData[index].collapsed}>
+                <!-- <div class="tree-table-cell" style="margin-left: {data.depth * 20}px;"> -->
+                <div class="tree-table-cell" style="padding-left: {data.depth * 20}px;">
+                    {#if !data.isLeaf}
+                        <a on:click={()=> onCollapseClicked(index)} class="colored-link">
+                            <Icon icon={data.isChildrenCollapsed ? faPlusSquare : faMinusSquare } />
+                        </a>
+                    {/if}
+                    {@html data.label}
+                </div>
+                <div class="tree-table-cell">{data.value}</div>
             </div>
-            <div class="tree-table-cell">{data.value}</div>
-        </div>
-        {/each}
+            {/each}
     </div>
 </div>
 

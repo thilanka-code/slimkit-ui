@@ -239,32 +239,37 @@
     
     onMount(()=>{
         ///// Load initial data /////////////////////
-        resourceList.then((items) => {
-            currentPage = 1; //Reset page number every time the resourceList changes
-            //Pre processing of items
-            // const processedItems = items.map((it, i) => {
-                // items = []
-            processedItems = add_url_to_items(items.slice(lastInputIndex))
-                .map((it, i) => {
-                    return {...it, __index: i}
-                })
-            // console.log(processedItems[0]);
-            isLoading = false;
-            filteredList = processedItems;
+        if (resourceList) {    
+        
+            resourceList.then((items) => {
+                currentPage = 1; //Reset page number every time the resourceList changes
+                //Pre processing of items
+                // const processedItems = items.map((it, i) => {
+                    // items = []
+                processedItems = add_url_to_items(items.slice(lastInputIndex))
+                    .map((it, i) => {
+                        return {...it, __index: i}
+                    })
+                // console.log(processedItems[0]);
+                isLoading = false;
+                filteredList = processedItems;
 
-            if (processedItems.length > 0) {
-                keys = Object.keys(processedItems[0]);
-            }
+                if (processedItems.length > 0) {
+                    keys = Object.keys(processedItems[0]);
+                }
 
-            // Seperate function is needed to prevent infinite reactive loop
-            //https://github.com/sveltejs/svelte/issues/4420
-            // validateIfObjectKeysMatchHeaders(); //Why is this commented?
-            resizeTable();
-            captureUniqueItemsToFilter(items) //runs on all items for once promise reolve
-            if(autoScrollOnTableUpdate) {
-                scrollToBottom()
-            }
-        });
+                // Seperate function is needed to prevent infinite reactive loop
+                //https://github.com/sveltejs/svelte/issues/4420
+                // validateIfObjectKeysMatchHeaders(); //Why is this commented?
+                resizeTable();
+                captureUniqueItemsToFilter(items) //runs on all items for once promise reolve
+                if(autoScrollOnTableUpdate) {
+                    scrollToBottom()
+                }
+            });
+        } else {
+            isLoading = false
+        }
         ////////////////////////////////////////////////////////////////////
         scrollTopLast = scrollableTableContainer.scrollTop;
         scrollableTableContainer.addEventListener("scroll", ()=>{
