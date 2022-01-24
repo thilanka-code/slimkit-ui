@@ -12,6 +12,7 @@
     export let maxItems = 5;
     export let cssClass = "";
     export let autoScrollOnTableUpdate = true
+    export let updateTimeout = 3000
     export const appendItem = (item) => {
         setTimeout(() => {
             if (item_queue.length < max_queue_length && (new Date() - last_queue_access) < queue_flush_timeout) {
@@ -27,7 +28,7 @@
     }
     let last_queue_access
     const max_queue_length = 10
-    const queue_flush_timeout = 3000
+    const queue_flush_timeout = updateTimeout
     let cancel_queue_flusher
     let item_queue = []
     let currentPage = 1;
@@ -338,7 +339,7 @@
                     }, 100);
                 }
         })
-        cancel_queue_flusher = setInterval(() => { // Need to cancel this?
+        cancel_queue_flusher = setInterval(() => { // Need to cancel this? //Specify why do we need this here?
             if ((new Date() - last_queue_access) > queue_flush_timeout && item_queue.length > 0) {
                 insert_items_to_table(item_queue)
                 item_queue = []
@@ -482,7 +483,7 @@
         scrollableTableContainer.scrollTop = 0
     }
 
-    function filter_changed(header, data) {
+    function filter_changed(header, data) { //TODO: Provide meaningfull error when header name and data key has discrepency 
         for (const filter of filterMap[header]) {
             filter.value = data.indexOf(filter.key) >= 0
         }
@@ -571,6 +572,7 @@
         overflow: auto;
         // width: 1200px;
         height: 500px;
+        padding: 0; //Otherwise rows will see through when scrolling
     }
 
     .tbl-row-selected {

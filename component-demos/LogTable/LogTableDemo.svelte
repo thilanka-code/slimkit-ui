@@ -33,7 +33,7 @@
         // console.log(iteration);
         iteration++;
     }, 1);
-    }, 3000);
+    }, 1000);
 
     const rowSelected = (row) => {
         console.log("CLIENT: ");
@@ -92,6 +92,6 @@
 <button on:click={x}>gett</button> -->
 
 <div class="column" id="logTable">
-    <LogTable bind:this={myDataTable} resourceList={resources} {headers} maxItems={500} cssClass="log-viewer-tbl" {autoScrollOnTableUpdate} on:rowSelected={rowSelected}/>
+    <LogTable bind:this={myDataTable} resourceList={resources} {headers} maxItems={500} updateTimeout={500} cssClass="log-viewer-tbl" {autoScrollOnTableUpdate} on:rowSelected={rowSelected}/>
     <button on:click={()=>autoScrollOnTableUpdate = !autoScrollOnTableUpdate}>{updateBtnText}</button>
 </div>
