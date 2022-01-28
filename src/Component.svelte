@@ -10,4 +10,4 @@
 <!-- your code here -->
 <h1>Hello {name}!</h1>
 
-<button on:click={handleClick}>{buttonText}</button>
+<button id="btn" class="my-btn" on:click={handleClick}>{buttonText}</button>

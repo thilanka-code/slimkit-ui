@@ -13,7 +13,8 @@
     "start": "sirv component-demos/public --single --host 0.0.0.0",
     "prepublishOnly": "npm run build",
     "prod": "npm run build && npm pack",
-    "test": "jest test",
+    "test": "uvu test/uvu-tests -r esm -r test/uvu-setup/register -i setup",
+    "jest-test": "jest test",
     "test:watch": "yarn test -- --watch",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "del-cli docs && build-storybook -c .storybook -o docs"
@@ -41,8 +42,10 @@
     "core-js": "^3.12.1",
     "del-cli": "^3.0.0",
     "es-check": "^5.2.3",
+    "esm": "^3.2.25",
     "fa-svelte": "^3.1.0",
     "jest": "^25.2.7",
+    "jsdom": "^16.3.0",
     "node-sass": "^5.0.0",
     "postcss": "^8.2.1",
     "postcss-load-config": "^3.0.1",
@@ -56,7 +59,8 @@
     "svelte": "^3.20.1",
     "svelte-jester": "^1.0.5",
     "svelte-loader": "^2.13.6",
-    "svelte-preprocess": "^4.6.1"
+    "svelte-preprocess": "^4.6.1",
+    "uvu": "^0.5.3"
   },
   "keywords": [
     "svelte",

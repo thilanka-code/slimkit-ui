@@ -38,3 +38,9 @@ How to run locally using docker
 
 docker-compose up -d
 
+
+Add uvu testing integration
+------------------------------
+
+npm i esm@3.2.25 jsdom@16.3.0 uvu@0.5.3 --save-dev
+
