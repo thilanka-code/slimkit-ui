@@ -49,7 +49,7 @@ TODO: Add item navigation by arrow keys?
                             userInput.length > 0 &&
                             itemVal.text
                                 .toLowerCase()
-                                .startsWith(userInput.toLowerCase())
+                                .indexOf(userInput.toLowerCase()) > -1
                         );
                     })
                     .map((itemObj) => {
