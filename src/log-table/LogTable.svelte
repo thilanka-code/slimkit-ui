@@ -13,6 +13,7 @@
     export let cssClass = "";
     export let autoScrollOnTableUpdate = true
     export let updateTimeout = 3000
+    export let tableHeight = "500px";
     export const appendItem = (item) => {
         setTimeout(() => {
             if (item_queue.length < max_queue_length && (new Date() - last_queue_access) < queue_flush_timeout) {
@@ -504,7 +505,11 @@
     />
 
     <!-- Table based impl -->
-    <div class="column is-full svelte-elements-datatable-table-container" bind:this={scrollableTableContainer} bind:clientHeight={tableContainerHeight}>
+    <div class="column is-full svelte-elements-datatable-table-container" 
+        bind:this={scrollableTableContainer} 
+        bind:clientHeight={tableContainerHeight}
+        style="height: {tableHeight}"
+        >
         <table id="mx" class="table is-bordered is-stripedx is-narrow is-hoverablex is-fullwidth {cssClass}" bind:this={table}>
             <thead bind:clientHeight={headerHeight}>
                 <tr>
@@ -571,7 +576,7 @@
     .svelte-elements-datatable-table-container {
         overflow: auto;
         // width: 1200px;
-        height: 500px;
+        // height: 500px; This is set programatically by the user
         padding: 0; //Otherwise rows will see through when scrolling
     }
 
