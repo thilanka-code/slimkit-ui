@@ -27,6 +27,9 @@
             last_queue_access = new Date()
         }, 500);
     }
+    export const clear = () => { //Clear table
+        processedItems = []
+    }
     let last_queue_access
     const max_queue_length = 10
     const queue_flush_timeout = updateTimeout
@@ -39,6 +42,13 @@
 
     const ELEMENT_NAME = "ResourceList";
     let outerMostContainerDiv //This will be bound by svelte - Outer parent
+    let outerMostContainerDivHeight
+    $: { // Resize table to it's parent height
+        if(scrollableTableContainer) {
+            scrollableTableContainer.style.height = get_allowed_table_height() + "px";
+        }
+     }
+
     let scrollableTableContainer //This will be bound by svelte - scroll bar will be applied to this
     let table //This will be bound by svelte - actual table
     let loaderElement
@@ -189,6 +199,15 @@
                 filteredList = paged_items;
             }
         }
+    }
+
+    /**
+     * table height = parent height - Reader row height - search bar height
+     */
+    function get_allowed_table_height() {
+        const searchHeight = scrollableTableContainer.parentElement.firstElementChild.offsetHeight
+        const pagebarHeight = scrollableTableContainer.parentElement.lastElementChild.offsetHeight
+        return outerMostContainerDivHeight - searchHeight - pagebarHeight
     }
 
     /**
@@ -496,57 +515,57 @@
 
 </script>
 
-<div class="columns is-multiline data-list-container" bind:this={outerMostContainerDiv}>
-    <input
-        type="text"
-        class="input is-small column is-full"
-        bind:value={searchText}
-        placeholder="Search"
-    />
-
-    <!-- Table based impl -->
-    <div class="column is-full svelte-elements-datatable-table-container" 
+<div class="columns is-multiline data-list-container" bind:this={outerMostContainerDiv} bind:offsetHeight={outerMostContainerDivHeight}>
+    <div class="column">
+        <input
+            type="text"
+            class="input is-small column is-full"
+            bind:value={searchText}
+            placeholder="Search"/>
+        <!-- Table based impl -->
+        <!-- style="height: {tableHeight}" -->
+        <div class="column is-full svelte-elements-datatable-table-container" 
         bind:this={scrollableTableContainer} 
         bind:clientHeight={tableContainerHeight}
-        style="height: {tableHeight}"
         >
-        <table id="mx" class="table is-bordered is-stripedx is-narrow is-hoverablex is-fullwidth {cssClass}" bind:this={table}>
-            <thead bind:clientHeight={headerHeight}>
-                <tr>
-                    {#each headers as label, headerIndex} <!-- headerIndex will be mapped with keys - same order is assumed -->
-                        <th class="is-primary">
-                            <div class="tbl-head-container">
-                                <div style="float: left" class="tbl-head-txt">
-                                    {label}
+            <table id="mx" class="table is-bordered is-stripedx is-narrow is-hoverablex is-fullwidth {cssClass}" bind:this={table}>
+                <thead bind:clientHeight={headerHeight}>
+                    <tr>
+                        {#each headers as label, headerIndex} <!-- headerIndex will be mapped with keys - same order is assumed -->
+                            <th class="is-primary">
+                                <div class="tbl-head-container">
+                                    <div style="float: left" class="tbl-head-txt">
+                                        {label}
+                                    </div>
+                                    <div style="float: right" class="tbl-head-icon">
+                                        {#if filterMap[keys[headerIndex]]  && keys && keys.length > 0}
+                                            <FilterMenu on:selection={(data)=> { filter_changed(label, data.detail) }} items={filterMap[keys[headerIndex]]}></FilterMenu>
+                                        {/if}
+                                    </div>
                                 </div>
-                                <div style="float: right" class="tbl-head-icon">
-                                    {#if filterMap[keys[headerIndex]]  && keys && keys.length > 0}
-                                        <FilterMenu on:selection={(data)=> { filter_changed(label, data.detail) }} items={filterMap[keys[headerIndex]]}></FilterMenu>
-                                    {/if}
-                                </div>
-                            </div>
-                        </th>
-                    {/each}
-                    <!-- <th>Details</th> -->
-                </tr>
-            </thead>
-            <tbody>
-                {#each filteredList as resource}
-                    <tr on:click={(element) => { onRowSelected({element: element.target, index: resource.__index}); } } class:tbl-row-selected={resource.__index == rowSelected} >
-                        {#each keys as key}
-                            <!-- We will skip keys starting with __ as they are meta columns -->
-                            {#if !key.startsWith("__")}<td>{resource[key]}</td
-                                >{/if}
+                            </th>
                         {/each}
+                        <!-- <th>Details</th> -->
                     </tr>
-                {/each}
-            </tbody>
-        </table>
-        <div bind:this={loaderElement} class:loader={isLoading}></div>
-    </div>
-    <div class="paged_controls">
-        <button class="button is-small" on:click={goToPrevPage}>&lt;</button>
-        <button class="button is-small" on:click={goToNextPage}>&gt;</button>
+                </thead>
+                <tbody>
+                    {#each filteredList as resource}
+                        <tr on:click={(element) => { onRowSelected({element: element.target, index: resource.__index}); } } class:tbl-row-selected={resource.__index == rowSelected} >
+                            {#each keys as key}
+                                <!-- We will skip keys starting with __ as they are meta columns -->
+                                {#if !key.startsWith("__")}<td>{resource[key]}</td
+                                    >{/if}
+                            {/each}
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
+            <div bind:this={loaderElement} class:loader={isLoading}></div>
+        </div>
+        <div class="paged_controls">
+            <button class="button is-small" on:click={goToPrevPage}>&lt;</button>
+            <button class="button is-small" on:click={goToNextPage}>&gt;</button>
+        </div>
     </div>
 </div>
 
@@ -573,8 +592,16 @@
         margin-top: 25px;
     }
 
+    .data-list-container {
+        height: 100%;
+        div {
+            width: 100%;
+        }
+    }
+    
     .svelte-elements-datatable-table-container {
         overflow: auto;
+        // height: 100%;
         // width: 1200px;
         // height: 500px; This is set programatically by the user
         padding: 0; //Otherwise rows will see through when scrolling

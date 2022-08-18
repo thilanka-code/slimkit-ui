@@ -1,7 +1,7 @@
 {
   "author": "Thilanka N. Liyanaarachchi <thilanka.nuwan89@gmail.com> (https://zirconlabz.com)",
   "name": "@slimkit-ui/svelte-elements",
-  "version": "0.0.11",
+  "version": "0.0.13",
   "svelte": "src/index.js",
   "module": "dist/index.mjs",
   "main": "dist/index.js",
@@ -72,7 +72,9 @@
     "src",
     "dist"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@svgdotjs/svg.js": "^3.1.1"
+  },
   "peerDependencies": {
     "bulma": "^0.9.1",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",

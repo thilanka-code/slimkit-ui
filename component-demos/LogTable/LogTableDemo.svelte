@@ -18,9 +18,10 @@
     let sample_record = data.slice(0,1)[0]
     // console.log(sample_record);
     let start = new Date()
+    let tblHeight = "280px"
     setTimeout(() => {
         let cancel = setInterval(() => {
-        if (iteration == 4){
+        if (iteration == 40){
             console.log("Duration: "+(new Date() - start));
              clearInterval(cancel)
         }
@@ -62,17 +63,22 @@
         "dynamicValues",
     ];
 
+    const clear = () => {
+        myDataTable.clear()
+    }
+
 </script>
 
 <style lang="scss">
     :global(.log-viewer-tbl){
         font-style: italic;
     }
-    /* #logTable {
-        max-width: 1000px;
-        max-height: 500px;
-        overflow: scroll;
-    } */
+    #logTable {
+        // max-width: 1000px;
+        // max-height: 500px;
+        // overflow: scroll;
+        height: 300px;
+    }
 </style>
 
 <pre>{`
@@ -92,6 +98,17 @@
 <button on:click={x}>gett</button> -->
 
 <div class="column" id="logTable">
-    <LogTable bind:this={myDataTable} resourceList={resources} {headers} maxItems={500} updateTimeout={500} cssClass="log-viewer-tbl" {autoScrollOnTableUpdate} on:rowSelected={rowSelected}/>
-    <button on:click={()=>autoScrollOnTableUpdate = !autoScrollOnTableUpdate}>{updateBtnText}</button>
+    <LogTable bind:this={myDataTable} 
+    resourceList={resources}
+    {headers} maxItems={500} 
+    updateTimeout={500} 
+    tableHeight={tblHeight}
+    cssClass="log-viewer-tbl" 
+    {autoScrollOnTableUpdate} 
+    on:rowSelected={rowSelected}/>
+
+    <div class="column">
+        <button on:click={()=>autoScrollOnTableUpdate = !autoScrollOnTableUpdate}>{updateBtnText}</button>
+        <button on:click={clear}>clear</button>
+    </div>
 </div>
