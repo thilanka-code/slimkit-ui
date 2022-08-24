@@ -3,7 +3,7 @@
      * This is a read only data table that can be updated 
     */
     import Icon from "fa-svelte";
-    import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
+    import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
     import { afterUpdate, createEventDispatcher, onMount } from "svelte";
     import FilterMenu from "./FilterMenu.svelte";
 
@@ -563,6 +563,7 @@
         <div class="paged_controls">
             <button class="button is-small" on:click={goToPrevPage}>&lt;</button>
             <button class="button is-small" on:click={goToNextPage}>&gt;</button>
+            <button class="button is-small" on:click={clear}><Icon icon={faTrashAlt} /></button>
         </div>
     </div>
 </div>
