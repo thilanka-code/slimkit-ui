@@ -1,7 +1,7 @@
 {
   "author": "Thilanka N. Liyanaarachchi <thilanka.nuwan89@gmail.com> (https://zirconlabz.com)",
   "name": "@slimkit-ui/svelte-elements",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "svelte": "src/index.js",
   "module": "dist/index.mjs",
   "main": "dist/index.js",
