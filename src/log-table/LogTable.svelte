@@ -43,7 +43,7 @@
     let outerMostContainerDiv //This will be bound by svelte - Outer parent
     let outerMostContainerDivHeight
     $: { // Resize table to it's parent height
-        if(scrollableTableContainer) {
+        if(scrollableTableContainer && outerMostContainerDivHeight) { // outerMostContainerDivHeight used to trigger the resize change
             scrollableTableContainer.style.height = get_allowed_table_height() + "px";
         }
      }
@@ -603,6 +603,7 @@
         // height: 100%;
         // width: 1200px;
         // height: 500px; This is set programatically by the user
+        height: calc(100% - 30px);
         padding: 0; //Otherwise rows will see through when scrolling
     }
 
