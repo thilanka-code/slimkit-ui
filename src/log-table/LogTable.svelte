@@ -13,7 +13,6 @@
     export let cssClass = "";
     export let autoScrollOnTableUpdate = true
     export let updateTimeout = 3000
-    export let tableHeight = "500px";
     export const appendItem = (item) => {
         setTimeout(() => {
             if (item_queue.length < max_queue_length && (new Date() - last_queue_access) < queue_flush_timeout) {
@@ -523,7 +522,6 @@
             bind:value={searchText}
             placeholder="Search"/>
         <!-- Table based impl -->
-        <!-- style="height: {tableHeight}" -->
         <div class="column is-full svelte-elements-datatable-table-container" 
         bind:this={scrollableTableContainer} 
         bind:clientHeight={tableContainerHeight}

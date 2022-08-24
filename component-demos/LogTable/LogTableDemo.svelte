@@ -18,7 +18,6 @@
     let sample_record = data.slice(0,1)[0]
     // console.log(sample_record);
     let start = new Date()
-    let tblHeight = "280px"
     setTimeout(() => {
         let cancel = setInterval(() => {
         if (iteration == 40){
@@ -102,7 +101,6 @@
     resourceList={resources}
     {headers} maxItems={500} 
     updateTimeout={500} 
-    tableHeight={tblHeight}
     cssClass="log-viewer-tbl" 
     {autoScrollOnTableUpdate} 
     on:rowSelected={rowSelected}/>
