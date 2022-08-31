@@ -23,11 +23,13 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
             let field = value[key]
             let propertyLabel = field.label ? field.label : key
             if(!field.value) {
-                rowData.push({ label: propertyLabel, value: "", depth, element: {}, collapsed: false, isChildrenCollapsed: false })
+                rowData.push({ label: propertyLabel, value: "", cssClass: field.cssClass? field.cssClass : "", depth, element: {}, collapsed: false, isChildrenCollapsed: false })
                 addRowRecursive(field, depth)
             } else {
                 depth = depth > 0 ? depth-- : 0
-                rowData.push({ label: propertyLabel, value: field.value, depth, element: {}, collapsed: false, isChildrenCollapsed: false, isLeaf: true })
+                if (!field.hidden) {
+                    rowData.push({ label: propertyLabel, value: field.value, cssClass: field.cssClass? field.cssClass : "", depth, element: {}, collapsed: false, isChildrenCollapsed: false, isLeaf: true })
+                }
             }
         }
         // elementList = rowData.map(v => { return {element: {}}})
@@ -45,10 +47,12 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
             let field = valueObject[childKey]
             let propertyLabel = field.label ? field.label : childKey
             if(!field.value) {
-                rowData.push({label: propertyLabel, value: "", depth: parentDepth, element: {}, collapsed: false, isChildrenCollapsed: false })
+                rowData.push({label: propertyLabel, value: "", cssClass: field.cssClass? field.cssClass : "", depth: parentDepth, element: {}, collapsed: false, isChildrenCollapsed: false })
                 addRowRecursive(field, parentDepth)
             } else {
-                rowData.push({label: propertyLabel, value: field.value, depth: parentDepth, element: {}, collapsed: false, isChildrenCollapsed: false, isLeaf: true })
+                if (!field.hidden) {
+                    rowData.push({label: propertyLabel, value: field.value, cssClass: field.cssClass? field.cssClass : "", depth: parentDepth, element: {}, collapsed: false, isChildrenCollapsed: false, isLeaf: true })
+                }
             }
         }
     }
@@ -79,7 +83,7 @@ import { faPlusSquare, faMinusSquare } from "@fortawesome/free-solid-svg-icons";
 
             {#each rowData as data, index}
             <!-- <div class="tree-table-row" bind:this={elementList[index].element} class:tree-table-row-hidden={rowData[index].collapsed}> -->
-            <div class="tree-table-row" class:tree-table-row-hidden={rowData[index].collapsed}>
+            <div class="tree-table-row {data.cssClass}" class:tree-table-row-hidden={rowData[index].collapsed}>
                 <!-- <div class="tree-table-cell" style="margin-left: {data.depth * 20}px;"> -->
                 <div class="tree-table-cell" style="padding-left: {data.depth * 20}px;">
                     {#if !data.isLeaf}

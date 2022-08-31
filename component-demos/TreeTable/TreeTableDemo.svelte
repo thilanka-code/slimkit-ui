@@ -5,14 +5,15 @@ let value = {
     name: { label: "Name", value: "Thilanka" },
     parties: {
         party1: {
-            p11: { value: "1-1"},
+            p11: { value: "1-1", cssClass: "error" },
+            p111: { value: "1-1", cssClass: "error", hidden: true },
             p12: { value: "1-2"},
         },
         party2: {
-            p21: {value: "2-1"},
+            p21: {value: "2-1", cssClass: "pass"},
         }
     },
-    city: { value: "Colombo"}
+    city: { value: "Colombo", hidden: true }
 }
 
 // value = undefined
@@ -47,3 +48,22 @@ const update = () => {
 
 <TreeTable {value} />
 <button on:click={update}>update tree table</button>
+
+<style lang="scss">
+    :global(){
+        .error {
+            background-color: $danger;
+            // color: white;
+        }
+        .pass {
+            background-color: $success-light;
+            // color: white;
+        }
+        .error:hover {
+            color: currentcolor;
+        }
+        .pass:hover {
+            color: currentcolor;
+        }
+    }
+</style>
